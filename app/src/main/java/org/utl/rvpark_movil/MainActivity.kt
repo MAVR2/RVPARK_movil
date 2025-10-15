@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
             RvPark_movilTheme {
                 LoginScreen()
             }
+
         }
     }
 }
