@@ -20,6 +20,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -30,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import org.utl.rvpark_movil.R
 import org.utl.rvpark_movil.ui.theme.orange600
 import org.utl.rvpark_movil.utils.components.PasswordTextField
+import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 
 @Preview(showBackground = true)
@@ -41,6 +43,8 @@ fun LoginScreen(
 ){
 
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val userRepository = UserRepository(context)
 
     if (uiState.isSuccess) {
         onLoginSuccess()
@@ -56,7 +60,7 @@ fun LoginScreen(
             onEmailChange = viewModel::updateEmail,
             onPassChange = viewModel::updatePassword,
             onLoginClick = {
-                viewModel.login()
+                viewModel.login(userRepository)
                 if (uiState.isSuccess) onLoginSuccess()
             },
             onRegister = onRegister

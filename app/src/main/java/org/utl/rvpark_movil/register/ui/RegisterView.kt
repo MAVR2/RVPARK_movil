@@ -48,6 +48,8 @@ fun RegisterScreen(
             uiState = uiState,
             OnFirstNameChange = viewModel::updateFirstName,
             OnLastNameChange = viewModel::updateLastName,
+            OnPhoneChange = viewModel::updatePhone,
+            OnEmailChange = viewModel::updateEmail,
             OnPassword1Change = viewModel::updatePassword1,
             OnPassword2Change = viewModel::updatePassword2,
             OnRolChange = viewModel::updateRol,
@@ -65,6 +67,8 @@ fun RegisterForm(
     uiState: RegsiterUiState,
     OnFirstNameChange: (String) -> Unit,
     OnLastNameChange: (String) -> Unit,
+    OnPhoneChange: (String) -> Unit,
+    OnEmailChange: (String) -> Unit,
     OnPassword1Change: (String) -> Unit,
     OnPassword2Change: (String) -> Unit,
     OnRolChange: (Int) -> Unit,
@@ -83,7 +87,7 @@ fun RegisterForm(
             modifier = Modifier.fillMaxWidth(),
             value = uiState.firstName,
             onValueChange = { OnFirstNameChange(it) },
-            label = { Text("Nombre completo") }
+            label = { Text("Name") }
         )
 
         Spacer(Modifier.height(12.dp))
@@ -92,10 +96,25 @@ fun RegisterForm(
             modifier = Modifier.fillMaxWidth(),
             value = uiState.lastName,
             onValueChange = { OnLastNameChange(it) },
-            label = { Text("Correo electrónico") }
+            label = { Text("Last name") }
         )
 
         Spacer(Modifier.height(12.dp))
+
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = uiState.phone,
+            onValueChange = { OnPhoneChange(it) },
+            label = { Text("Phone number") }
+        )
+
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = uiState.email,
+            onValueChange = { OnEmailChange(it) },
+            label = { Text("Email") }
+        )
+
 
         PasswordTextField(
             modifier = Modifier.fillMaxWidth(),

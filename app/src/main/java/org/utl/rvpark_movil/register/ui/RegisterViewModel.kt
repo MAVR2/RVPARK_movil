@@ -11,6 +11,8 @@ import kotlinx.coroutines.launch
 data class RegsiterUiState(
     val firstName: String = "",
     val lastName: String = "",
+    val phone: String = "",
+    val email: String = "",
     val password1: String = "",
     val password2: String = "",
     val rol: Int = 0,
@@ -34,6 +36,13 @@ class RegisterViewModel: ViewModel(){
 
     fun updateLastName(newLastName: String){
         _uiState.value = _uiState.value.copy(lastName = newLastName)
+    }
+
+    fun updatePhone(newPhone: String){
+        _uiState.value = _uiState.value.copy(phone = newPhone)
+    }
+    fun updateEmail(newEmail: String){
+        _uiState.value = _uiState.value.copy(email = newEmail)
     }
 
     fun updatePassword1(newPassword1: String){
