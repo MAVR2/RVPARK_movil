@@ -11,6 +11,7 @@ class UserRepository(private val context: Context) {
     private val dataStore = context.userDataStore
 
     companion object {
+        val USER_ID = stringPreferencesKey("user_id")
         val USER_EMAIL = stringPreferencesKey("user_email")
         val USER_NAME = stringPreferencesKey("user_name")
         val USER_LAST_NAME = stringPreferencesKey("user_last_name")
@@ -21,6 +22,7 @@ class UserRepository(private val context: Context) {
 
     // Guardar usuario
     suspend fun saveUser(
+        id_user: String,
         email: String,
         name: String,
         lastName: String,
@@ -28,6 +30,7 @@ class UserRepository(private val context: Context) {
         rol: String
     ) {
         dataStore.edit { prefs ->
+            prefs[USER_ID] =  id_user
             prefs[USER_EMAIL] = email
             prefs[USER_NAME] = name
             prefs[USER_LAST_NAME] = lastName
@@ -43,5 +46,9 @@ class UserRepository(private val context: Context) {
         prefs[USER_LAST_NAME]
         prefs[USER_PHONE]
         prefs[USER_ROL]
+    }
+
+    val user_id: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[USER_ID]
     }
 }
