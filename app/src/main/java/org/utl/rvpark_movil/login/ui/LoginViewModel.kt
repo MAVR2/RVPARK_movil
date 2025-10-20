@@ -39,6 +39,7 @@ class LoginViewModel : ViewModel(){
 
                     //usuario demo
                     userRepository.saveUser(
+                        id_user = "1",
                         email = "admin",
                         name = "Admin",
                         lastName = "Test",
