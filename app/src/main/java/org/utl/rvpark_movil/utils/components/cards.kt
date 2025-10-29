@@ -1,5 +1,6 @@
 package org.utl.rvpark_movil.utils.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,8 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -25,10 +24,15 @@ import org.utl.rvpark_movil.home.data.hoy
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
+import androidx.navigation.NavHostController
+
 
 
 @Composable
-fun ListaContratos(contratos: List<Contrato>?) {
+fun ListaContratos(
+    contratos: List<Contrato>?,
+    navHostController: NavHostController
+) {
     if (contratos.isNullOrEmpty()) {
         ElevatedCard(
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
@@ -45,20 +49,26 @@ fun ListaContratos(contratos: List<Contrato>?) {
             }
         }
     } else {
-        LazyColumn(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
         ) {
-            items(contratos) { contrato ->
-                ContratoCard(contrato = contrato)
+            contratos.forEach { contrato ->
+                ContratoCard(
+                    contrato = contrato,
+                    navController = navHostController
+                    )
             }
         }
     }
 }
 
 @Composable
-fun ContratoCard(contrato: Contrato) {
+fun ContratoCard(
+    contrato: Contrato,
+    navController: NavHostController
+) {
     val fechaInicio = LocalDate.parse(contrato.fecha_inicio)
     val fechaFin = LocalDate.parse(contrato.fecha_fin)
     val diasTotales = ChronoUnit.DAYS.between(fechaInicio, fechaFin).toFloat()
@@ -71,7 +81,11 @@ fun ContratoCard(contrato: Contrato) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .wrapContentHeight()) {
+            .wrapContentHeight()
+            .clickable {
+                navController.navigate("contratoDetalle/${contrato.id_renta}")
+            }
+    ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(text = "Contrato #${contrato.id_renta}")
             Text(text = "Cliente: ${contrato.id_cliente}")
@@ -79,12 +93,11 @@ fun ContratoCard(contrato: Contrato) {
             Text(text = "Fin: ${contrato.fecha_fin}")
             Text(text = "Monto: $${contrato.monto_total}")
             Text(text = "Estatus: ${contrato.estatus_pago}")
-            Text(text = "progreso: ${progreso}")
 
             Spacer(modifier = Modifier.height(8.dp))
 
             CircularProgressIndicator(
-                progress = { progreso.coerceIn(0f, 1f)  },
+                progress = { progreso.coerceIn(0f, 1f) },
                 modifier = Modifier
                     .size(60.dp)
                     .align(Alignment.CenterHorizontally),

@@ -28,7 +28,7 @@ fun generarContratos(cantidad: Int = 10): List<Contrato> {
 
     return List(cantidad) { i ->
         val diasDuracion = Random.nextInt(1, 15)
-        val diasAtras = Random.nextInt(0, 4) // Entre hoy y hace 3 días
+        val diasAtras = Random.nextInt(0, 4)
         val fechaInicio = hoy.minusDays(diasAtras.toLong())
         val fechaFin = fechaInicio.plusDays(diasDuracion.toLong())
         val monto = Random.nextDouble(500.0, 5000.0)
