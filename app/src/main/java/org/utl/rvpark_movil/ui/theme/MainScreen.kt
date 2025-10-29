@@ -55,7 +55,7 @@ fun MainScreen(navController: NavHostController) {
     ) { innerPadding ->
         Box(Modifier.padding(innerPadding)) {
             Text("Bienvenido a Home")
-            HomeScreen()
+            HomeScreen(navController)
         }
     }
 }

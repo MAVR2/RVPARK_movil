@@ -52,6 +52,13 @@ dependencies {
     //dataStore
     implementation("androidx.datastore:datastore-preferences:1.1.0")
 
+    //QR
+    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.zxing:android-core:3.3.0")
+
+    //pdf
+    implementation("com.itextpdf:itext7-core:7.2.5")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

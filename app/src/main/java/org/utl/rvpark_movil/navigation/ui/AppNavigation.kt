@@ -4,10 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import org.utl.rvpark_movil.contracts.ui.contractScreen
 import org.utl.rvpark_movil.login.ui.LoginScreen
 import org.utl.rvpark_movil.register.ui.RegisterScreen
 import org.utl.rvpark_movil.ui.theme.MainScreen
 import org.utl.rvpark_movil.utils.Screen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import org.utl.rvpark_movil.contracts.ui.ContratoDetailScreen
+
 
 @Composable
 fun AppNavigation(startAtHome: Boolean = false) {
@@ -32,6 +37,23 @@ fun AppNavigation(startAtHome: Boolean = false) {
         composable(Screen.Home.route) {
             MainScreen(navController)
         }
+
+        composable(Screen.Contratos.route){
+            contractScreen(navController )
+        }
+
+        composable(Screen.Contratos.route) {
+            contractScreen(navController)
+        }
+
+        composable(
+            route = "contratoDetalle/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val contratoId = backStackEntry.arguments?.getInt("id") ?: 0
+            ContratoDetailScreen(contratoId)
+        }
+
 
     }
 }

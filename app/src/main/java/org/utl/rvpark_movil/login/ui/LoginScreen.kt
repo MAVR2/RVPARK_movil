@@ -91,7 +91,7 @@ fun Login(
 
         Image(
             modifier = Modifier.size(150.dp),
-            painter = painterResource(R.drawable.ic_launcher_background),
+            painter = painterResource(R.drawable.logo),
             contentDescription = "Logo"
         )
 
