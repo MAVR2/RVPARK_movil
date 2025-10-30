@@ -86,7 +86,10 @@ fun ContratoCard(
                 navController.navigate("contratoDetalle/${contrato.id_renta}")
             }
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Box(modifier = Modifier.fillMaxWidth()){
+            Spacer(Modifier.height(16.dp))
+        }
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(text = "Contrato #${contrato.id_renta}")
             Text(text = "Cliente: ${contrato.id_cliente}")
             Text(text = "Inicio: ${contrato.fecha_inicio}")

@@ -1,9 +1,13 @@
 package org.utl.rvpark_movil.profile.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.room.util.copy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 data class userUiState (
     val id: String = "",
@@ -18,12 +22,6 @@ data class userUiState (
     val error: String? = null,
     val isSuccess: Boolean = false
     )
-
-
-
-
-
-
 
 class ProfileViewModel: ViewModel(){
 
@@ -51,6 +49,15 @@ class ProfileViewModel: ViewModel(){
 
     private val _uiState = MutableStateFlow(userUiState())
     val uiState: StateFlow<userUiState> = _uiState.asStateFlow()
+
+    fun loadUser(userRepository: UserRepository) {
+        viewModelScope.launch {
+            userRepository.user2.collect { user ->
+                _uiState.value = user.copy(isSuccess = true)
+            }
+        }
+    }
+
 
     fun editarUser(){
 
