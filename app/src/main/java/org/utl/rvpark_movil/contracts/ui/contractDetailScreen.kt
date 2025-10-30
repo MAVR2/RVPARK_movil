@@ -1,40 +1,45 @@
 package org.utl.rvpark_movil.contracts.ui
 
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.os.Environment
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import org.utl.rvpark_movil.home.ui.HomeViewModel
-import android.graphics.Color
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-import org.utl.rvpark_movil.home.data.Contrato
-import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.element.Paragraph
-import com.itextpdf.layout.element.Image
-import com.itextpdf.io.image.ImageDataFactory
-import android.graphics.Bitmap
+import org.utl.rvpark_movil.home.data.Contrato
+import org.utl.rvpark_movil.home.ui.HomeViewModel
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import android.content.Context
-import android.content.Intent
-import android.os.Environment
-import androidx.core.content.FileProvider
+import com.itextpdf.layout.element.Image as PdfImage
 
 @Composable
 fun ContratoDetailScreen(
@@ -59,33 +64,36 @@ fun ContratoDetailScreen(
     val qrBitmap = remember { generateQrCode(qrData) }
     val context = LocalContext.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Contrato #${contrato.id_renta}", style = MaterialTheme.typography.titleLarge)
-        Text("Cliente: ${contrato.id_cliente}")
-        Text("Inicio: ${contrato.fecha_inicio}")
-        Text("Fin: ${contrato.fecha_fin}")
-        Text("Monto: $${contrato.monto_total}")
-        Text("Estatus: ${contrato.estatus_pago}")
-        Text("Método de pago: ${contrato.metodo_pago}")
-        Text("Observaciones: ${contrato.observaciones}")
+    Scaffold { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Contrato #${contrato.id_renta}", style = MaterialTheme.typography.titleLarge)
+            Text("Cliente: ${contrato.id_cliente}")
+            Text("Inicio: ${contrato.fecha_inicio}")
+            Text("Fin: ${contrato.fecha_fin}")
+            Text("Monto: $${contrato.monto_total}")
+            Text("Estatus: ${contrato.estatus_pago}")
+            Text("Método de pago: ${contrato.metodo_pago}")
+            Text("Observaciones: ${contrato.observaciones}")
 
-        Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
-        Image(
-            bitmap = qrBitmap.asImageBitmap(),
-            contentDescription = "Código QR del contrato",
-            modifier = Modifier.size(250.dp)
-        )
+            Image(
+                bitmap = qrBitmap.asImageBitmap(),
+                contentDescription = "Código QR del contrato",
+                modifier = Modifier.size(250.dp)
+            )
 
-        Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(20.dp))
 
-        Button(onClick = { saveContratoPdf(context, contrato, qrBitmap) }) {
-            Text("Guardar PDF")
+            Button(onClick = { saveContratoPdf(context, contrato, qrBitmap) }) {
+                Text("Guardar PDF")
+            }
         }
     }
 }
@@ -103,7 +111,10 @@ fun generateQrCode(data: String): Bitmap {
 }
 
 fun saveContratoPdf(context: Context, contrato: Contrato, qrBitmap: Bitmap) {
-    val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "Contrato_${contrato.id_renta}.pdf")
+    val file = File(
+        context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+        "Contrato_${contrato.id_renta}.pdf"
+    )
 
     val pdfWriter = PdfWriter(FileOutputStream(file))
     val pdfDoc = PdfDocument(pdfWriter)
@@ -118,11 +129,10 @@ fun saveContratoPdf(context: Context, contrato: Contrato, qrBitmap: Bitmap) {
     document.add(Paragraph("Método de pago: ${contrato.metodo_pago}"))
     document.add(Paragraph("Observaciones: ${contrato.observaciones}"))
 
-    // Convertir el QR en imagen PDF
     val stream = ByteArrayOutputStream()
     qrBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
     val imageData = ImageDataFactory.create(stream.toByteArray())
-    val image = Image(imageData)
+    val image = PdfImage(imageData)
     image.scaleToFit(200f, 200f)
     document.add(image)
 
@@ -133,5 +143,4 @@ fun saveContratoPdf(context: Context, contrato: Contrato, qrBitmap: Bitmap) {
     intent.setDataAndType(uri, "application/pdf")
     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     context.startActivity(intent)
-
 }
