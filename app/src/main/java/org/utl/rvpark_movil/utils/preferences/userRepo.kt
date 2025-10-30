@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import android.content.Context
+import org.utl.rvpark_movil.profile.ui.userUiState
 
 class UserRepository(private val context: Context) {
 
@@ -46,6 +47,18 @@ class UserRepository(private val context: Context) {
         prefs[USER_LAST_NAME]
         prefs[USER_PHONE]
         prefs[USER_ROL]
+    }
+
+    // Leer usuario
+    val user2: Flow<userUiState> = dataStore.data.map { prefs ->
+        userUiState(
+            id = prefs[USER_ID] ?: "",
+            email = prefs[USER_EMAIL] ?: "",
+            name = prefs[USER_NAME] ?: "",
+            lastName = prefs[USER_LAST_NAME] ?: "",
+            phone = prefs[USER_PHONE] ?: "",
+            rol = prefs[USER_ROL] ?: ""
+        )
     }
 
     val user_id: Flow<String?> = dataStore.data.map { prefs ->

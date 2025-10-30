@@ -12,6 +12,8 @@ import org.utl.rvpark_movil.utils.Screen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import org.utl.rvpark_movil.contracts.ui.ContratoDetailScreen
+import org.utl.rvpark_movil.parking.ui.ParkingScreen
+import org.utl.rvpark_movil.profile.ui.ProfileScreen
 
 
 @Composable
@@ -42,8 +44,8 @@ fun AppNavigation(startAtHome: Boolean = false) {
             contractScreen(navController )
         }
 
-        composable(Screen.Contratos.route) {
-            contractScreen(navController)
+        composable(Screen.Profile.route) {
+            ProfileScreen(navController)
         }
 
         composable(
@@ -52,6 +54,10 @@ fun AppNavigation(startAtHome: Boolean = false) {
         ) { backStackEntry ->
             val contratoId = backStackEntry.arguments?.getInt("id") ?: 0
             ContratoDetailScreen(contratoId)
+        }
+
+        composable(Screen.NuevoContrato.route) {
+            ParkingScreen()
         }
 
 
