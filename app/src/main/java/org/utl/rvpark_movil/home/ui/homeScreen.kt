@@ -1,5 +1,6 @@
 package org.utl.rvpark_movil.home.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +49,7 @@ fun HomeScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             ChatBotFAB (onClick = { viewModel.loadChatBot() })
         }
@@ -57,8 +59,9 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            uiState = uiState,
+                .padding(horizontal = 16.dp)
+                .background(MaterialTheme.colorScheme.background),
+        uiState = uiState,
             onReloadContratos = { viewModel.loadContratos(userRepository) },
             onChatBotClick = { viewModel.loadChatBot() },
             navHostController = navHostController
