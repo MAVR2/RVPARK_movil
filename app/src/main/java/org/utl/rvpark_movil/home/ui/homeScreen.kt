@@ -31,7 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import org.utl.rvpark_movil.utils.preferences.UserRepository
-import org.utl.rvpark_movil.utils.components.Carousel
+import org.utl.rvpark_movil.utils.components.HeroCarousel
 import org.utl.rvpark_movil.utils.components.ListaContratos
 
 @Composable
@@ -88,7 +88,7 @@ fun Home(
 
         Spacer(Modifier.height(12.dp))
 
-        Carousel()
+        HeroCarousel()
 
         Spacer(Modifier.height(24.dp))
 
