@@ -38,7 +38,6 @@ class ParkingViweModel: ViewModel(){
 
 
     fun loadLotes(){
-        _uiState.value = _uiState.value
     }
 
     fun loadParks(){

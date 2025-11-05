@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import org.utl.rvpark_movil.contracts.ui.contractScreen
+import org.utl.rvpark_movil.contracts.ui.ContractScreen
 import org.utl.rvpark_movil.login.ui.LoginScreen
 import org.utl.rvpark_movil.register.ui.RegisterScreen
 import org.utl.rvpark_movil.ui.theme.MainScreen
@@ -41,7 +41,7 @@ fun AppNavigation(startAtHome: Boolean = false) {
         }
 
         composable(Screen.Contratos.route){
-            contractScreen(navController )
+            ContractScreen(navController )
         }
 
         composable(Screen.Profile.route) {
