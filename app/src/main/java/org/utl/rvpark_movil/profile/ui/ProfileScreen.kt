@@ -34,6 +34,7 @@ import org.utl.rvpark_movil.utils.Screen
 import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 @Composable
+@Preview
 fun ProfileScreen(
     navController: NavHostController,
     viewModel: ProfileViewModel = viewModel()
@@ -85,6 +86,7 @@ fun ProfileScreen(
 }
 
 @Composable
+@Preview
 fun Profile(
     uiState: userUiState,
     onEditarUser: () -> Unit,
@@ -105,12 +107,19 @@ fun Profile(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(text = "Nombre: ${uiState.name} ${uiState.lastName}")
+        Text(text = "Nombre del titular de la cuenta: ${uiState.name} ${uiState.lastName}")
         Text(text = "Correo: ${uiState.email}")
         Text(text = "Teléfono: ${uiState.phone}")
-        Text(text = "Rol: ${uiState.rol}")
+        Text(text = "Tipo de cuenta: ${uiState.rol}")
 
         Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onEditarUser,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Editar usuario")
+        }
 
         Text(
             text = "Métodos de pago",
@@ -122,12 +131,7 @@ fun Profile(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Button(
-            onClick = onEditarUser,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Editar usuario")
-        }
+
 
         Spacer(modifier = Modifier.height(12.dp))
 
