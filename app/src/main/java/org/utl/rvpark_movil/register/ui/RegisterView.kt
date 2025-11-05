@@ -78,8 +78,9 @@ fun RegisterForm(
         Text(
             text = "Crear cuenta",
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.headlineMedium,
+            )
 
         Spacer(Modifier.height(20.dp))
 

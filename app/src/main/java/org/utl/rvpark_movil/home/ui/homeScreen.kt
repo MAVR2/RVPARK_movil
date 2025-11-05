@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Message
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -81,7 +82,8 @@ fun Home(
         Text(
             textAlign = TextAlign.Center,
             text = "Lo nuevo en RVPARK",
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp),
+            style = MaterialTheme.typography.headlineMedium,
         )
 
         Spacer(Modifier.height(12.dp))
