@@ -9,4 +9,6 @@ sealed class Screen(val route: String){
 
     object NuevoContrato: Screen("nuevoContrato")
 
+    object ChatBot: Screen("chatBot")
+
 }

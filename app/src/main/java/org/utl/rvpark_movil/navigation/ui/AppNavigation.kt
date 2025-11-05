@@ -11,6 +11,7 @@ import org.utl.rvpark_movil.ui.theme.MainScreen
 import org.utl.rvpark_movil.utils.Screen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import org.utl.rvpark_movil.chat.ui.ChatScreen
 import org.utl.rvpark_movil.contracts.ui.ContratoDetailScreen
 import org.utl.rvpark_movil.parking.ui.ParkingScreen
 import org.utl.rvpark_movil.profile.ui.ProfileScreen
@@ -58,6 +59,10 @@ fun AppNavigation(startAtHome: Boolean = false) {
 
         composable(Screen.NuevoContrato.route) {
             ParkingScreen()
+        }
+
+        composable(Screen.ChatBot.route){
+            ChatScreen()
         }
 
 

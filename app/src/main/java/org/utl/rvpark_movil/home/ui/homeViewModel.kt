@@ -75,7 +75,4 @@ class HomeViewModel : ViewModel(){
         }
     }
 
-    fun loadChatBot() {
-        // Lógica del ChatBot
-    }
 }

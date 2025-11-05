@@ -51,7 +51,7 @@ fun HomeScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            ChatBotFAB (onClick = { viewModel.loadChatBot() })
+            ChatBotFAB (onClick = { navHostController.navigate("chatBot") })
         }
     ) { paddingValues ->
 
@@ -63,7 +63,7 @@ fun HomeScreen(
                 .background(MaterialTheme.colorScheme.background),
         uiState = uiState,
             onReloadContratos = { viewModel.loadContratos(userRepository) },
-            onChatBotClick = { viewModel.loadChatBot() },
+            onChatBotClick = {  },
             navHostController = navHostController
         )
     }
