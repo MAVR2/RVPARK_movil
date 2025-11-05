@@ -1,10 +1,13 @@
 package org.utl.rvpark_movil.parking.ui
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -12,6 +15,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import org.utl.rvpark_movil.R
 import org.utl.rvpark_movil.utils.components.LoteDropDown
 import org.utl.rvpark_movil.utils.preferences.UserRepository
+import java.util.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
+
 
 @Composable
 fun ParkingScreen(
@@ -22,7 +29,7 @@ fun ParkingScreen(
     val userRepository = remember { UserRepository(context) }
 
     LaunchedEffect(Unit) {
-        viewModel.loadLotes()
+        viewModel.loadZonas()
         viewModel.loadParks()
     }
 
@@ -32,7 +39,7 @@ fun ParkingScreen(
                 .fillMaxWidth()
                 .padding(innerPadding),
             uiState = uiState,
-            onLoteSelected = viewModel::updateLote,
+            onLoteSelected = viewModel::updateZona,
             onParkSelected = viewModel::updatePark,
             onSave = viewModel::savePark
         )
@@ -47,52 +54,117 @@ fun ParkingContent(
     onParkSelected: (String) -> Unit,
     onSave: () -> Unit
 ) {
-    Column(
-        modifier = modifier.padding(16.dp)
-    ) {
-        Image(
-            modifier = Modifier
-                .size(150.dp)
-                .fillMaxWidth(),
-            painter = painterResource(R.drawable.logo),
-            contentDescription = "Logo"
-        )
+    val context = LocalContext.current
+    var fechaInicio by remember { mutableStateOf("") }
+    var fechaFin by remember { mutableStateOf("") }
 
-        Spacer(Modifier.height(16.dp))
+    val calendario = Calendar.getInstance()
 
-        Text(text = "Seleccione el lote")
-        LoteDropDown(
-            items = uiState.listaLote,
-            selectedItem = uiState.lote,
-            onItemSelected = onLoteSelected
-        )
+    val datePickerInicio = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            fechaInicio = "$dayOfMonth/${month + 1}/$year"
+        },
+        calendario.get(Calendar.YEAR),
+        calendario.get(Calendar.MONTH),
+        calendario.get(Calendar.DAY_OF_MONTH)
+    )
 
-        Spacer(Modifier.height(16.dp))
+    val datePickerFin = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            fechaFin = "$dayOfMonth/${month + 1}/$year"
+        },
+        calendario.get(Calendar.YEAR),
+        calendario.get(Calendar.MONTH),
+        calendario.get(Calendar.DAY_OF_MONTH)
+    )
 
-        Text(text = "Seleccione el parqueo")
-        LoteDropDown(
-            items = uiState.listaPark,
-            selectedItem = uiState.park,
-            onItemSelected = onParkSelected
-        )
+    LazyColumn(modifier = modifier.padding(16.dp)) {
+        item {
+            Image(
+                modifier = Modifier.fillMaxWidth(),
+                painter = painterResource(R.drawable.map),
+                contentDescription = "Logo",
+                contentScale = ContentScale.Fit
+            )
 
-        Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onSave
-        ) {
-            Text("Guardar selección y continuar al pago")
-        }
+            Text("Seleccione la zona")
+            LoteDropDown(
+                items = uiState.listaZona,
+                selectedItem = uiState.lote,
+                onItemSelected = onLoteSelected
+            )
 
-        if (uiState.isLoading)
-            Text("Cargando...", modifier = Modifier.padding(top = 8.dp))
+            Spacer(Modifier.height(16.dp))
 
-        if (uiState.isSuccess)
-            Text("Guardado correctamente", modifier = Modifier.padding(top = 8.dp))
+            Text("Seleccione el lugar (solo se muestran los que están disponibles)")
+            LoteDropDown(
+                items = uiState.listaPark,
+                selectedItem = uiState.park,
+                onItemSelected = onParkSelected
+            )
 
-        uiState.error?.let {
-            Text("Error: $it", modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.error)
+            Spacer(Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = fechaInicio,
+                onValueChange = {},
+                label = { Text("Fecha de inicio") },
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    IconButton(onClick = { datePickerInicio.show() }) {
+                        Icon(
+                            imageVector = Icons.Filled.CalendarToday,
+                            contentDescription = "Seleccionar fecha inicio"
+                        )
+                    }
+                }
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = fechaFin,
+                onValueChange = {},
+                label = { Text("Fecha final") },
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    IconButton(onClick = { datePickerFin.show() }) {
+                        Icon(
+                            imageVector = Icons.Filled.CalendarToday,
+                            contentDescription = "Seleccionar fecha final"
+                        )
+                    }
+                }
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onSave
+            ) {
+                Text("Guardar selección y continuar al pago")
+            }
+
+            if (uiState.isLoading)
+                Text("Cargando...", modifier = Modifier.padding(top = 8.dp))
+
+            if (uiState.isSuccess)
+                Text("Guardado correctamente", modifier = Modifier.padding(top = 8.dp))
+
+            uiState.error?.let {
+                Text(
+                    "Error: $it",
+                    modifier = Modifier.padding(top = 8.dp),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }
