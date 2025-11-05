@@ -29,7 +29,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.utl.rvpark_movil.R
-import org.utl.rvpark_movil.ui.theme.orange600
 import org.utl.rvpark_movil.utils.components.PasswordTextField
 import org.utl.rvpark_movil.utils.preferences.UserRepository
 
@@ -104,7 +103,6 @@ fun Login(
             placeholder = {
                 Text(
                     text = "Correo electrónico",
-                    style = TextStyle(color = orange600)
                 )
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -141,7 +139,6 @@ fun Login(
         ) {
             Text(
                 text = "Register",
-                color = orange600
             )
         }
     }

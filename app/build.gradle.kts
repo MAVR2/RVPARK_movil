@@ -62,6 +62,8 @@ dependencies {
 
     //fuck compose
     implementation("androidx.compose.foundation:foundation:1.7.0")
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.0")
+
 
 
     implementation(libs.androidx.core.ktx)
