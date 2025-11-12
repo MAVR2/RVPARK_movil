@@ -52,7 +52,6 @@ fun RegisterScreen(
             OnEmailChange = viewModel::updateEmail,
             OnPassword1Change = viewModel::updatePassword1,
             OnPassword2Change = viewModel::updatePassword2,
-            OnRolChange = viewModel::updateRol,
             onRegisterClick = {
                 viewModel.register()
                 if(uiState.isSuccess) onBack()
@@ -71,7 +70,6 @@ fun RegisterForm(
     OnEmailChange: (String) -> Unit,
     OnPassword1Change: (String) -> Unit,
     OnPassword2Change: (String) -> Unit,
-    OnRolChange: (Int) -> Unit,
     onRegisterClick: () -> Unit,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -135,11 +133,7 @@ fun RegisterForm(
 
         Spacer(Modifier.height(12.dp))
 
-        RoleDropdown(
-            selectedRole = uiState.rol,
-            onRoleSelected = OnRolChange,
-            modifier = Modifier.fillMaxWidth()
-        )
+
 
         Spacer(Modifier.height(24.dp))
 

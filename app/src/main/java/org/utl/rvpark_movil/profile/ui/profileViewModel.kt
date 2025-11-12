@@ -58,12 +58,4 @@ class ProfileViewModel: ViewModel(){
         }
     }
 
-
-    fun editarUser(){
-
-    }
-
-    fun editarPago(){
-
-    }
 }

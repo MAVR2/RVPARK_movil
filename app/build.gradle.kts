@@ -44,13 +44,13 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     //viewModel()
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
 
     //navigation
-    implementation("androidx.navigation:navigation-compose:2.7.0")
+    implementation("androidx.navigation:navigation-compose:2.9.5")
 
     //dataStore
-    implementation("androidx.datastore:datastore-preferences:1.1.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
 
     //QR
     implementation("com.google.zxing:core:3.5.3")
@@ -63,7 +63,12 @@ dependencies {
     //fuck compose
     implementation("androidx.compose.foundation:foundation:1.7.0")
     implementation("androidx.compose.ui:ui-text-google-fonts:1.7.0")
+    implementation("androidx.compose.ui:ui-text:1.7.5")
 
+
+    //retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
 
     implementation(libs.androidx.core.ktx)

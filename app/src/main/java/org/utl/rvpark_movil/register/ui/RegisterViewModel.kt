@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.utl.rvpark_movil.register.data.model.ClienteRequest
 
 data class RegsiterUiState(
     val firstName: String = "",
@@ -15,7 +16,6 @@ data class RegsiterUiState(
     val email: String = "",
     val password1: String = "",
     val password2: String = "",
-    val rol: Int = 0,
 
     //UI
     val isLoanding: Boolean = false,
@@ -53,37 +53,30 @@ class RegisterViewModel: ViewModel(){
         _uiState.value = _uiState.value.copy(password2 = newPassword2)
     }
 
-    fun updateRol(newRol: Int){
-        _uiState.value = _uiState.value.copy(rol = newRol)
-    }
 
     fun register() {
         viewModelScope.launch {
+            val state = _uiState.value
             _uiState.value = _uiState.value.copy(isLoanding = true, error = null, isSuccess = false)
             try {
-                if (_uiState.value.password1 == _uiState.value.password2) {
-                    if (
-                        _uiState.value.firstName.isEmpty() ||
-                        _uiState.value.lastName.isEmpty() ||
-                        _uiState.value.rol == 0
-                    ) {
-                        _uiState.value = _uiState.value.copy(
-                            isLoanding = false,
-                            error = "Faltan datos obligatorios",
-                            isSuccess = false
-                        )
-                        Log.d("Debug", "faltan datos")
-                    } else {
-                        _uiState.value = _uiState.value.copy(isLoanding = false, isSuccess = true)
-                        Log.d("Debug", "Registrado")
-                    }
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoanding = false,
-                        error = "Passwords no coinciden",
-                        isSuccess = false
-                    )
+                if(state.password1 != state.password2){
+                    _uiState.value = state.copy(isLoanding = false, error = "Las contraseñas no coinciden")
+                    return@launch
+            }
+                if(state.firstName.isEmpty() || state.lastName.isEmpty() || state.email.isEmpty()){
+                    _uiState.value = state.copy(isLoanding = false, error="Todos los campos son obligatorios")
+                    return@launch
                 }
+
+                //preparar datos
+                val request = ClienteRequest(
+                    nombre = state.firstName +" " +state.lastName,
+                    telefono = state.phone,
+                    email = state.email,
+                    direccion = ""
+                )
+
+
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoanding = false,
