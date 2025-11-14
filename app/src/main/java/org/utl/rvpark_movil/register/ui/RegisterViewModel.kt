@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.utl.rvpark_movil.register.data.model.ClienteRequest
+import org.utl.rvpark_movil.register.data.repository.RegisterRepository
 
 data class RegsiterUiState(
     val firstName: String = "",
@@ -24,6 +25,9 @@ data class RegsiterUiState(
 )
 
 class RegisterViewModel: ViewModel(){
+
+    //llamada al back
+    private val repository: RegisterRepository = RegisterRepository();
 
     //estado interno
     private val _uiState = MutableStateFlow(RegsiterUiState())
@@ -70,11 +74,23 @@ class RegisterViewModel: ViewModel(){
 
                 //preparar datos
                 val request = ClienteRequest(
-                    nombre = state.firstName +" " +state.lastName,
+                    nombre = state.firstName + " " + state.lastName,
                     telefono = state.phone,
                     email = state.email,
-                    direccion = ""
+                    direccion = "",
+                    nombre_usuario = state.email,
+                    password_hash = state.password1,
+                    rol = "Cliente"
                 )
+
+                val response = repository.registrarCliente(request)
+
+                if(response.success){
+                    _uiState.value = state.copy(isLoanding = false, isSuccess = true)
+                    Log.d("debug", "registro exitoso")
+                }else{
+                    _uiState.value = state.copy(isLoanding = false, error = response.message ?: "Error en el servidor")
+                }
 
 
             } catch (e: Exception) {
@@ -83,11 +99,8 @@ class RegisterViewModel: ViewModel(){
                     error = "Error de conexión",
                     isSuccess = false
                 )
+                Log.d("debug", "${e}")
             }
         }
     }
-
-
-
-
 }

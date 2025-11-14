@@ -1,10 +1,10 @@
 package org.utl.rvpark_movil.utils.preferences
 
+import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import android.content.Context
 import org.utl.rvpark_movil.profile.ui.userUiState
 
 class UserRepository(private val context: Context) {
@@ -12,56 +12,59 @@ class UserRepository(private val context: Context) {
     private val dataStore = context.userDataStore
 
     companion object {
-        val USER_ID = stringPreferencesKey("user_id")
-        val USER_EMAIL = stringPreferencesKey("user_email")
-        val USER_NAME = stringPreferencesKey("user_name")
-        val USER_LAST_NAME = stringPreferencesKey("user_last_name")
-        val USER_PHONE = stringPreferencesKey("user_phone")
-        val USER_ROL = stringPreferencesKey("user_rol")
-
+        val USER_ID = stringPreferencesKey("id_usuario")
+        val USER_EMAIL = stringPreferencesKey("nombre_usuario")
+        val NOMBRE = stringPreferencesKey("nombre")
+        val ID_RVPARK = stringPreferencesKey("id_rv_park")
+        val TOKEN = stringPreferencesKey("jwt_token")
     }
 
-    // Guardar usuario
     suspend fun saveUser(
-        id_user: String,
-        email: String,
-        name: String,
-        lastName: String,
-        phone: String,
-        rol: String
+        id_usuario: String,
+        nombre_usuario: String,
+        nombre: String,
+        id_rv_park: String,
+        token: String
     ) {
         dataStore.edit { prefs ->
-            prefs[USER_ID] =  id_user
-            prefs[USER_EMAIL] = email
-            prefs[USER_NAME] = name
-            prefs[USER_LAST_NAME] = lastName
-            prefs[USER_PHONE] = phone
-            prefs[USER_ROL] =  rol
+            prefs[USER_ID] = id_usuario
+            prefs[USER_EMAIL] = nombre_usuario
+            prefs[NOMBRE] =nombre
+            prefs[ID_RVPARK] = id_rv_park
+            prefs[TOKEN] = token
         }
     }
 
-    // Leer usuario
-    val user: Flow<String?> = dataStore.data.map { prefs ->
-        prefs[USER_EMAIL]
-        prefs[USER_NAME]
-        prefs[USER_LAST_NAME]
-        prefs[USER_PHONE]
-        prefs[USER_ROL]
+    suspend fun saveToken(token: String) {
+        dataStore.edit { prefs ->
+            prefs[TOKEN] = token
+        }
     }
 
-    // Leer usuario
+    val token: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[TOKEN]
+    }
+
+    val user: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[USER_EMAIL]
+    }
+
     val user2: Flow<userUiState> = dataStore.data.map { prefs ->
         userUiState(
             id = prefs[USER_ID] ?: "",
-            email = prefs[USER_EMAIL] ?: "",
-            name = prefs[USER_NAME] ?: "",
-            lastName = prefs[USER_LAST_NAME] ?: "",
-            phone = prefs[USER_PHONE] ?: "",
-            rol = prefs[USER_ROL] ?: ""
+            email = prefs[USER_EMAIL] ?: ""
         )
     }
 
     val user_id: Flow<String?> = dataStore.data.map { prefs ->
         prefs[USER_ID]
+    }
+
+    val nombre: Flow<String?> = dataStore.data.map { prefs ->
+    prefs[NOMBRE]
+    }
+
+    val user_rvpark: Flow<String?> = dataStore.data.map { prefs ->
+        prefs[ID_RVPARK]
     }
 }
