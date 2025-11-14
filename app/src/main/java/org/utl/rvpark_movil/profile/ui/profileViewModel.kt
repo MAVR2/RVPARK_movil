@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.utl.rvpark_movil.login.data.repository.LoginRepository
 import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 data class userUiState (
@@ -24,6 +25,7 @@ data class userUiState (
     )
 
 class ProfileViewModel: ViewModel(){
+
 
     fun updateEmail(newEmail: String){
         _uiState.value = _uiState.value.copy(email = newEmail)
@@ -58,12 +60,4 @@ class ProfileViewModel: ViewModel(){
         }
     }
 
-
-    fun editarUser(){
-
-    }
-
-    fun editarPago(){
-
-    }
 }

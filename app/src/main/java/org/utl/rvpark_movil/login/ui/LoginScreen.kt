@@ -123,9 +123,9 @@ fun Login(
         Button(
             modifier = Modifier.fillMaxWidth(0.7f),
             onClick = { onLoginClick() },
-            enabled = !uiState.isLoanding
+            enabled = !uiState.isLoading
         ) {
-            Text(text = if (uiState.isLoanding) "Loanding..." else "Log in")
+            Text(text = if (uiState.isLoading) "Loanding..." else "Log in")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
