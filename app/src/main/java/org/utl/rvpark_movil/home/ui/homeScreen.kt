@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import org.utl.rvpark_movil.profile.ui.userUiState
 import org.utl.rvpark_movil.utils.preferences.UserRepository
 import org.utl.rvpark_movil.utils.components.HeroCarousel
 import org.utl.rvpark_movil.utils.components.ListaContratos
@@ -43,9 +44,13 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
+    val nombre by userRepository.nombre.collectAsState(initial = "")
+
+
 
     LaunchedEffect(Unit) {
         viewModel.loadContratos(userRepository)
+        viewModel.setNombre(nombre ?: "")
     }
 
     Scaffold(
@@ -62,9 +67,7 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp)
                 .background(MaterialTheme.colorScheme.background),
         uiState = uiState,
-            onReloadContratos = { viewModel.loadContratos(userRepository) },
-            onChatBotClick = {  },
-            navHostController = navHostController
+            navHostController = navHostController,
         )
     }
 }
@@ -74,8 +77,6 @@ fun Home(
     modifier: Modifier,
     uiState: homeUiState,
     navHostController: NavHostController,
-    onReloadContratos: () -> Unit,
-    onChatBotClick: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -84,11 +85,17 @@ fun Home(
     ) {
         Text(
             textAlign = TextAlign.Center,
-            text = "Lo nuevo en RVPARK",
+            text = "Bienvenido: ${uiState.nombre_usuario}",
             modifier = Modifier.padding(top = 8.dp),
             style = MaterialTheme.typography.headlineMedium,
         )
 
+        Text(
+            textAlign = TextAlign.Center,
+            text = "Lo nuevo en RVPARK",
+            modifier = Modifier.padding(top = 8.dp),
+            style = MaterialTheme.typography.displayMedium,
+        )
         Spacer(Modifier.height(12.dp))
 
         HeroCarousel()
