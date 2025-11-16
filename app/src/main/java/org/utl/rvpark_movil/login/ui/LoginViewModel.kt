@@ -68,6 +68,8 @@ class LoginViewModel : ViewModel() {
 
                     val data = response.data!!
 
+                    Log.d("Debug", " ${data.nombre}")
+
                     userRepository.saveUser(
                         id_usuario = data.id_usuario.toString(),
                         nombre_usuario = data.nombre_usuario,

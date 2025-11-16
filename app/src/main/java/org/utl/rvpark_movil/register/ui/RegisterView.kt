@@ -1,37 +1,30 @@
 package org.utl.rvpark_movil.register.ui
 
-import RoleDropdown
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import DialogError
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import org.utl.rvpark_movil.utils.components.PasswordTextField
+import org.utl.rvpark_movil.utils.components.TextField
 
-
-@Preview(showBackground = true)
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel = viewModel(),
-    onBack: () -> Unit
+    onBack: () -> Unit = {}
 ) {
-
     val uiState by viewModel.uiState.collectAsState()
 
     if (uiState.isSuccess) {
@@ -41,10 +34,11 @@ fun RegisterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
     ) {
+
         RegisterForm(
-            Modifier.align(Alignment.Center),
             uiState = uiState,
             OnFirstNameChange = viewModel::updateFirstName,
             OnLastNameChange = viewModel::updateLastName,
@@ -52,17 +46,15 @@ fun RegisterScreen(
             OnEmailChange = viewModel::updateEmail,
             OnPassword1Change = viewModel::updatePassword1,
             OnPassword2Change = viewModel::updatePassword2,
-            onRegisterClick = {
-                viewModel.register()
-                if(uiState.isSuccess) onBack()
-            }
+            onRegisterClick = viewModel::register,
+            onClearError =  viewModel::clearError,
+            onBack = onBack
         )
     }
 }
 
 @Composable
 fun RegisterForm(
-    modifier: Modifier,
     uiState: RegsiterUiState,
     OnFirstNameChange: (String) -> Unit,
     OnLastNameChange: (String) -> Unit,
@@ -70,100 +62,140 @@ fun RegisterForm(
     OnEmailChange: (String) -> Unit,
     OnPassword1Change: (String) -> Unit,
     OnPassword2Change: (String) -> Unit,
+    onClearError: () -> Unit,
     onRegisterClick: () -> Unit,
+    onBack: () -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = "Crear cuenta",
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.headlineMedium,
+
+
+    val showDialog = uiState.error != null
+
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+
+        Column(
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Icon(
+                imageVector = Icons.Default.PersonAdd,
+                contentDescription = null,
+                modifier = Modifier.size(70.dp)
             )
 
-        Spacer(Modifier.height(20.dp))
+            Text(
+                text = "Crear cuenta",
+                style = MaterialTheme.typography.headlineMedium
+            )
 
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = uiState.firstName,
-            onValueChange = { OnFirstNameChange(it) },
-            label = { Text("Name") }
-        )
+            Text(
+                text = "Regístrate para continuar",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 4.dp),
+                textAlign = TextAlign.Center
+            )
 
-        Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
+            Divider()
 
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = uiState.lastName,
-            onValueChange = { OnLastNameChange(it) },
-            label = { Text("Last name") }
-        )
+            Spacer(Modifier.height(16.dp))
 
-        Spacer(Modifier.height(12.dp))
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = uiState.firstName,
+                onValueChange = OnFirstNameChange,
+                label = "Nombres",
+                icon = Icons.Default.Person
+            )
 
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = uiState.phone,
-            onValueChange = { OnPhoneChange(it) },
-            label = { Text("Phone number") }
-        )
+            Spacer(Modifier.height(12.dp))
 
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = uiState.email,
-            onValueChange = { OnEmailChange(it) },
-            label = { Text("Email") }
-        )
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = uiState.lastName,
+                onValueChange = OnLastNameChange,
+                label = "Apellidos",
+                icon = Icons.Default.Person
+            )
 
+            Spacer(Modifier.height(12.dp))
 
-        PasswordTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = uiState.password1,
-            label = { Text("Password") },
-            onValueChange = { OnPassword1Change(it) }
-        )
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = uiState.phone,
+                onValueChange = OnPhoneChange,
+                label = "Teléfono",
+                icon = Icons.Default.Phone
+            )
 
-        PasswordTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = uiState.password2,
-            label = { Text("Confirm password") },
-            onValueChange = { OnPassword2Change(it) }
-        )
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(24.dp))
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = uiState.email,
+                onValueChange = OnEmailChange,
+                label = "Correo electrónico",
+                icon = Icons.Default.Email
+            )
 
-        Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = uiState.password1,
+                onValueChange = OnPassword1Change,
+                label = "Contraseña",
+                icon = Icons.Default.Lock,
+                isPassword = true,
+            )
 
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(24.dp))
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = uiState.password2,
+                onValueChange = OnPassword2Change,
+                label = "Confirmar contraseña",
+                icon = Icons.Default.Lock,
+                isPassword = true,
+            )
 
+            Spacer(Modifier.height(20.dp))
 
-
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
             Button(
-                onClick = { onRegisterClick() },
-                enabled = !uiState.isLoanding
+                onClick = onRegisterClick,
+                enabled = !uiState.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
             ) {
-                Text(text = if (uiState.isLoanding) "Loading..." else "Sign up")
+                Icon(Icons.Default.PersonAdd, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(text = if (uiState.isLoading) "Cargando..." else "Registrarse")
             }
-        }
 
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
 
-        uiState.error?.let {
-            Text(text = it, color = MaterialTheme.colorScheme.error)
-        }
-
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            TextButton(onClick = { onRegisterClick() }) {
+            TextButton(onClick = onBack) {
                 Text("Ya tengo cuenta")
             }
         }
     }
+
+    if (showDialog) {
+        DialogError(
+            onDismiss = { onClearError() },
+            onConfirm = { onClearError() },
+            titulo = "Ups, algo salió mal",
+            texto = uiState.error ?: "Ocurrió un problema.",
+            icon = Icons.Default.Error
+        )
+    }
+
 }

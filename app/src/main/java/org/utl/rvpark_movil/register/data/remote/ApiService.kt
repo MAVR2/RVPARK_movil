@@ -6,6 +6,6 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface ApiService{
-    @POST("api/clientes")
+    @POST("api/auth/register")
     suspend fun crearCliente(@Body cliente: ClienteRequest): ClienteResponse
 }

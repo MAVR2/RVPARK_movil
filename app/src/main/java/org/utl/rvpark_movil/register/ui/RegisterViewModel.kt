@@ -6,9 +6,14 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import org.utl.rvpark_movil.register.data.model.ClienteRequest
 import org.utl.rvpark_movil.register.data.repository.RegisterRepository
+import retrofit2.HttpException
+
+
 
 data class RegsiterUiState(
     val firstName: String = "",
@@ -19,7 +24,7 @@ data class RegsiterUiState(
     val password2: String = "",
 
     //UI
-    val isLoanding: Boolean = false,
+    val isLoading: Boolean = false,
     val error: String? = null,
     val isSuccess: Boolean = false
 )
@@ -57,50 +62,53 @@ class RegisterViewModel: ViewModel(){
         _uiState.value = _uiState.value.copy(password2 = newPassword2)
     }
 
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
+
 
     fun register() {
         viewModelScope.launch {
             val state = _uiState.value
-            _uiState.value = _uiState.value.copy(isLoanding = true, error = null, isSuccess = false)
-            try {
-                if(state.password1 != state.password2){
-                    _uiState.value = state.copy(isLoanding = false, error = "Las contraseñas no coinciden")
-                    return@launch
+            _uiState.update { it.copy(isLoading = true, error = null, isSuccess = false) }
+
+            if (state.firstName.isEmpty() || state.lastName.isEmpty() || state.email.isEmpty()) {
+                _uiState.update { it.copy(isLoading = false, error = "Todos los campos son obligatorios") }
+                return@launch
             }
-                if(state.firstName.isEmpty() || state.lastName.isEmpty() || state.email.isEmpty()){
-                    _uiState.value = state.copy(isLoanding = false, error="Todos los campos son obligatorios")
-                    return@launch
-                }
 
-                //preparar datos
-                val request = ClienteRequest(
-                    nombre = state.firstName + " " + state.lastName,
-                    telefono = state.phone,
-                    email = state.email,
-                    direccion = "",
-                    nombre_usuario = state.email,
-                    password_hash = state.password1,
-                    rol = "Cliente"
-                )
+            if (state.password1 != state.password2) {
+                _uiState.update { it.copy(isLoading = false, error = "Las contraseñas no coinciden") }
+                return@launch
+            }
 
+            val request = ClienteRequest(
+                nombre = "${state.firstName} ${state.lastName}",
+                telefono = state.phone,
+                nombre_usuario = state.email,
+                password_hash = state.password1,
+                rol = "Cliente"
+            )
+
+            try {
                 val response = repository.registrarCliente(request)
-
-                if(response.success){
-                    _uiState.value = state.copy(isLoanding = false, isSuccess = true)
-                    Log.d("debug", "registro exitoso")
-                }else{
-                    _uiState.value = state.copy(isLoanding = false, error = response.message ?: "Error en el servidor")
+                if (response.success) {
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                } else {
+                    _uiState.update { it.copy(isLoading = false, error = response.message ?: "Error en el servidor") }
                 }
-
-
+            } catch (e: HttpException) {
+                val mensaje = try {
+                    JSONObject(e.response()?.errorBody()?.string() ?: "").optString("message", "Error en la solicitud")
+                } catch (_: Exception) {
+                    "Error en la solicitud"
+                }
+                _uiState.update { it.copy(isLoading = false, error = mensaje) }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoanding = false,
-                    error = "Error de conexión",
-                    isSuccess = false
-                )
-                Log.d("debug", "${e}")
+                _uiState.update { it.copy(isLoading = false, error = "Error de conexión") }
             }
         }
     }
+
 }
