@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -138,6 +140,14 @@ fun Profile(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Editar métodos de pago")
+        }
+
+        Button(
+            onClick = {navController.navigate("login") },
+        ) {
+            Text("Cerrar session")
+            Spacer(modifier = Modifier.size(10.dp))
+            Icon(Icons.Default.ExitToApp, contentDescription = "")
         }
     }
 }

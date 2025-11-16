@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.utl.rvpark_movil.utils.components.DialogSuccess
 import org.utl.rvpark_movil.utils.components.TextField
 
 @Composable
@@ -26,10 +27,6 @@ fun RegisterScreen(
     onBack: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-    if (uiState.isSuccess) {
-        onBack()
-    }
 
     Box(
         modifier = Modifier
@@ -186,6 +183,14 @@ fun RegisterForm(
                 Text("Ya tengo cuenta")
             }
         }
+    }
+
+    if(uiState.isSuccess){
+        DialogSuccess(
+            onConfirm = {onBack()},
+            titulo = "Exito!",
+            texto = "Registro exitoso, por favor inicia sesion."
+        )
     }
 
     if (showDialog) {

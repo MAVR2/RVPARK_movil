@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.utl.rvpark_movil.login.data.model.LoginRequest
 import org.utl.rvpark_movil.login.data.repository.LoginRepository
@@ -33,42 +34,44 @@ class LoginViewModel : ViewModel() {
     fun updatePassword(newPassword: String) {
         _uiState.value = _uiState.value.copy(password = newPassword)
     }
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
 
     fun login(userRepository: UserRepository) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null, isSuccess = false)
+            _uiState.update { it.copy(isLoading = true, error = null, isSuccess = false) }
+
+            val email = _uiState.value.email
+            val password = _uiState.value.password
+
+            if (email.isEmpty() || password.isEmpty()) {
+                _uiState.update { it.copy(isLoading = false, error = "Los campos son obligatorios") }
+                return@launch
+            }
 
             try {
-                val email = _uiState.value.email
-                val password = _uiState.value.password
-
+                // Login demo
                 if (email == "admin" && password == "admin") {
                     userRepository.saveUser(
-                        id_usuario ="1",
+                        id_usuario = "1",
                         nombre_usuario = "admin",
                         nombre = "demo",
                         id_rv_park = "1",
                         token = "demo"
                     )
-
-                    _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-                    Log.d("debug", "Inicio de sesión DEMO")
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                    Log.d("Login", "Inicio de sesión DEMO")
                     return@launch
                 }
 
                 // Request real al backend
-                val request = LoginRequest(
-                    nombre_usuario = email,
-                    password = password
-                )
-
+                val request = LoginRequest(nombre_usuario = email, password = password)
                 val response = repository.Login(request)
 
-                if (response.success) {
-
-                    val data = response.data!!
-
-                    Log.d("Debug", " ${data.nombre}")
+                if (response.success && response.data != null) {
+                    val data = response.data
 
                     userRepository.saveUser(
                         id_usuario = data.id_usuario.toString(),
@@ -78,22 +81,30 @@ class LoginViewModel : ViewModel() {
                         token = data.token
                     )
 
-                    _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-                    Log.d("debug", "Login exitoso")
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                    Log.d("Login", "Login exitoso: ${data.nombre}")
 
                 } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = response.message ?: "Error desconocido"
-                    )
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = response.message ?: "Error desconocido del servidor"
+                        )
+                    }
                 }
 
+            } catch (e: retrofit2.HttpException) {
+                val mensaje = e.response()?.errorBody()?.string() ?: "Error en la solicitud"
+                _uiState.update { it.copy(isLoading = false, error = mensaje) }
+                Log.d("Login", "HttpException: $mensaje")
+
+            } catch (e: java.io.IOException) {
+                _uiState.update { it.copy(isLoading = false, error = "Error de conexión") }
+                Log.d("Login", "IOException: ${e.message}")
+
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Error de conexión"
-                )
-                Log.d("Debug", "$e")
+                _uiState.update { it.copy(isLoading = false, error = "Error inesperado") }
+                Log.d("Login", "Exception: ${e.message}")
             }
         }
     }
