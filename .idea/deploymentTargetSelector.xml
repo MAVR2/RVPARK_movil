@@ -17,7 +17,7 @@
       <SelectionState runConfigName="ProfileScreen">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="ChatScreen">
+      <SelectionState runConfigName="DialogError">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
