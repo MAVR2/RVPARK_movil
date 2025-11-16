@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -111,6 +112,7 @@ fun LoginScreen(
                         label = "Contraseña",
                         isPassword = true,
                         modifier = Modifier.fillMaxWidth(),
+                        icon = Icons.Default.Lock,
                         borderColor = Color.White,
                         labelColor = Color.White,
                         iconColor = Color.White,
