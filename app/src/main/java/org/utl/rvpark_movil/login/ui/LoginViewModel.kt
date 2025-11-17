@@ -11,6 +11,8 @@ import kotlinx.coroutines.launch
 import org.utl.rvpark_movil.login.data.model.LoginRequest
 import org.utl.rvpark_movil.login.data.repository.LoginRepository
 import org.utl.rvpark_movil.utils.preferences.UserRepository
+import retrofit2.HttpException
+import java.io.IOException
 
 data class LoginUiState(
     val email: String = "",
@@ -59,7 +61,9 @@ class LoginViewModel : ViewModel() {
                         nombre_usuario = "admin",
                         nombre = "demo",
                         id_rv_park = "1",
-                        token = "demo"
+                        token = "demo",
+                        telefono = "telefono demo",
+                        rol = "demo"
                     )
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                     Log.d("Login", "Inicio de sesión DEMO")
@@ -78,7 +82,9 @@ class LoginViewModel : ViewModel() {
                         nombre_usuario = data.nombre_usuario,
                         nombre = data.nombre,
                         id_rv_park = data.id_rv_park.toString(),
-                        token = data.token
+                        token = data.token,
+                        telefono = data.telefono,
+                        rol = data.rol
                     )
 
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
@@ -93,12 +99,12 @@ class LoginViewModel : ViewModel() {
                     }
                 }
 
-            } catch (e: retrofit2.HttpException) {
+            } catch (e: HttpException) {
                 val mensaje = e.response()?.errorBody()?.string() ?: "Error en la solicitud"
                 _uiState.update { it.copy(isLoading = false, error = mensaje) }
                 Log.d("Login", "HttpException: $mensaje")
 
-            } catch (e: java.io.IOException) {
+            } catch (e: IOException) {
                 _uiState.update { it.copy(isLoading = false, error = "Error de conexión") }
                 Log.d("Login", "IOException: ${e.message}")
 

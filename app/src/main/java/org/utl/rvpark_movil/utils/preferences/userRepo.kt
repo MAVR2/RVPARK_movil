@@ -15,6 +15,10 @@ class UserRepository(private val context: Context) {
         val USER_ID = stringPreferencesKey("id_usuario")
         val USER_EMAIL = stringPreferencesKey("nombre_usuario")
         val NOMBRE = stringPreferencesKey("nombre")
+
+        val TELEFONO = stringPreferencesKey("telefono")
+
+        val ROL = stringPreferencesKey("rol")
         val ID_RVPARK = stringPreferencesKey("id_rv_park")
         val TOKEN = stringPreferencesKey("jwt_token")
     }
@@ -23,12 +27,16 @@ class UserRepository(private val context: Context) {
         id_usuario: String,
         nombre_usuario: String,
         nombre: String,
+        telefono: String,
+        rol: String,
         id_rv_park: String,
         token: String
     ) {
         dataStore.edit { prefs ->
             prefs[USER_ID] = id_usuario
             prefs[USER_EMAIL] = nombre_usuario
+            prefs[TELEFONO] = telefono
+            prefs[ROL] = rol
             prefs[NOMBRE] =nombre
             prefs[ID_RVPARK] = id_rv_park
             prefs[TOKEN] = token

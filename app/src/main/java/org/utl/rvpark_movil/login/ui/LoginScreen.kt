@@ -68,7 +68,6 @@ fun LoginScreen(
             contentScale = ContentScale.Crop
         )
 
-        // Card translúcida NÍTIDA encima
         Box(
             modifier = Modifier
                 .align(Alignment.Center)

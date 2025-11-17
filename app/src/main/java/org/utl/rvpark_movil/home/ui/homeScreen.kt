@@ -1,20 +1,27 @@
 package org.utl.rvpark_movil.home.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Message
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,29 +33,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import org.utl.rvpark_movil.profile.ui.userUiState
 import org.utl.rvpark_movil.utils.preferences.UserRepository
 import org.utl.rvpark_movil.utils.components.HeroCarousel
-import org.utl.rvpark_movil.utils.components.ListaContratos
+
+
 
 @Composable
-fun HomeScreen(
-    navHostController: NavHostController,
-    viewModel: HomeViewModel = viewModel(),
-){
+fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
     val nombre by userRepository.nombre.collectAsState(initial = "")
 
-
-
-    LaunchedEffect(Unit) {
+    LaunchedEffect(nombre) {
         viewModel.loadContratos(userRepository)
         viewModel.setNombre(nombre ?: "")
     }
@@ -56,67 +56,118 @@ fun HomeScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            ChatBotFAB (onClick = { navHostController.navigate("chatBot") })
+            FloatingActionButton(
+                onClick = { navController.navigate("chatBot") },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Filled.Message, contentDescription = "Chatbot", tint = MaterialTheme.colorScheme.onPrimary)
+            }
         }
     ) { paddingValues ->
 
-        Home(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .background(MaterialTheme.colorScheme.background),
-        uiState = uiState,
-            navHostController = navHostController,
-        )
-    }
-}
+        ) {
 
-@Composable
-fun Home(
-    modifier: Modifier,
-    uiState: homeUiState,
-    navHostController: NavHostController,
-) {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            textAlign = TextAlign.Center,
-            text = "Bienvenido: ${uiState.nombre_usuario}",
-            modifier = Modifier.padding(top = 8.dp),
-            style = MaterialTheme.typography.headlineMedium,
-        )
+            Spacer(Modifier.height(16.dp))
 
-        Text(
-            textAlign = TextAlign.Center,
-            text = "Lo nuevo en RVPARK",
-            modifier = Modifier.padding(top = 8.dp),
-            style = MaterialTheme.typography.displayMedium,
-        )
-        Spacer(Modifier.height(12.dp))
-
-        HeroCarousel()
-
-        Spacer(Modifier.height(24.dp))
-
-        ListaContratos(
-            contratos = uiState.contratos,
-            navHostController = navHostController)
+            Text(
+                text = "Hola $nombre!",
+                style = MaterialTheme.typography.headlineMedium
+            )
 
 
-        Spacer(Modifier.height(100.dp))
-    }
-}
+            Spacer(Modifier.height(16.dp))
 
-@Composable
-fun ChatBotFAB(onClick: () -> Unit) {
-    FloatingActionButton(
-        onClick = onClick,
-        shape = CircleShape,
-    ) {
-        Icon(Icons.Filled.Message, "Chatbot RVPARK")
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp, 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Bienvenido!", style = MaterialTheme.typography.titleMedium)
+                        Text("Mira los eventos que estamos preparando en RVPARK", style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Icon(Icons.Default.Celebration, contentDescription = null, modifier = Modifier.size(48.dp))
+                }
+                Row(
+                    modifier = Modifier.padding(8.dp, 0.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HeroCarousel(navHostController = navController)
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Text("Contratos de renta", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+
+            if(uiState.contratos.isEmpty()){
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Card(
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp, 0.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(Icons.Default.Help, contentDescription = "",
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.outline
+                                )
+
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically)
+                            {
+                                Text(text = "Parece que aun no tienes un contrato de renta.",
+                                    color = MaterialTheme.colorScheme.outline)
+
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically)
+                            {
+                                Button(
+                                    onClick = {navController.navigate("nuevoContrato")}
+                                ) {
+                                    Icon(Icons.Default.Add,
+                                        contentDescription = "")
+                                    Text("Solicitar un espacio")
+                                }
+                            }
+                        }
+                    }
+                }else{
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    uiState.contratos.forEach { contrato ->
+                        Card(
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(text= "${contrato.id_renta}", style = MaterialTheme.typography.titleMedium)
+                                Text("lugar del espacio: ${contrato.id_spot}%", style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

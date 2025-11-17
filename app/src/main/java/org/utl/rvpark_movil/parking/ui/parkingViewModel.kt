@@ -2,74 +2,46 @@ package org.utl.rvpark_movil.parking.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.utl.rvpark_movil.parking.data.model.Spot
+import org.utl.rvpark_movil.parking.data.repository.ParkingRepository
 
-data class ParkingUiState(
-    val listaZona: List<String> = emptyList(),
-    val listaPark: List<String> = emptyList(),
-    val lote: String = "",
-    val park: String = "",
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val isSuccess: Boolean = false
+
+data class ZonaUi(
+    val nombre: String,
+    val spots: List<Spot>
 )
 
-class ParkingViweModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ParkingUiState())
-    val uiState: StateFlow<ParkingUiState> = _uiState.asStateFlow()
 
-    fun loadZonas() {
+class ParkingViewModel(
+    private val repo: ParkingRepository = ParkingRepository()
+) : ViewModel() {
+
+    val zonasUi = MutableStateFlow<List<ZonaUi>>(emptyList())
+
+    val zonas = MutableStateFlow<Map<String, List<Spot>>>(emptyMap())
+
+    val zonaSeleccionada = MutableStateFlow<String?>(null)
+    val spotSeleccionado = MutableStateFlow<Spot?>(null)
+
+    val paso = MutableStateFlow(1)   // 1 = zona, 2 = spot, 3 = pago
+
+    fun cargarZonas() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            delay(500)
-            _uiState.value = _uiState.value.copy(
-                listaZona = listOf("Zona Norte", "Zona Sur", "Zona Este", "Zona Oeste"),
-                isLoading = false
-            )
-        }
-    }
-
-    fun loadParks() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            delay(500)
-            val parques = when (_uiState.value.lote) {
-                "Zona Norte" -> listOf("N1", "N2", "N3", "N4", "N5", "N6", "N7","N1", "N2", "N3", "N4", "N5", "N6", "N7")
-                "Zona Sur" -> listOf("S1", "S2", "S3")
-                "Zona Este" -> listOf("E1", "E2", "E3")
-                "Zona Oeste" -> listOf("O1", "O2", "O3")
-                else -> emptyList()
+            val mapa = repo.obtenerZonas().data
+            zonasUi.value = mapa.map { (nombre, spots) ->
+                ZonaUi(nombre, spots)
             }
-            _uiState.value = _uiState.value.copy(
-                listaPark = parques,
-                isLoading = false
-            )
         }
     }
 
-    fun updateZona(newLote: String) {
-        _uiState.value = _uiState.value.copy(
-            lote = newLote,
-            park = "",
-            listaPark = emptyList(),
-            isSuccess = false)
-        loadParks()
+    fun siguientePaso() {
+        paso.value = paso.value + 1
     }
-
-    fun updatePark(newPark: String) {
-        _uiState.value = _uiState.value.copy(park = newPark)
-    }
-
-    fun savePark() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            delay(800)
-            _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-        }
+    fun retrocederPaso() {
+        paso.value = paso.value - 1
     }
 }
+

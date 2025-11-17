@@ -1,170 +1,228 @@
 package org.utl.rvpark_movil.parking.ui
 
-import android.app.DatePickerDialog
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.utl.rvpark_movil.R
-import org.utl.rvpark_movil.utils.components.LoteDropDown
-import org.utl.rvpark_movil.utils.preferences.UserRepository
-import java.util.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
+import org.utl.rvpark_movil.utils.components.SpotDropdown
+import org.utl.rvpark_movil.utils.components.ZonaDropdown
 
 
 @Composable
-fun ParkingScreen(
-    viewModel: ParkingViweModel = viewModel()
-) {
-    val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    val userRepository = remember { UserRepository(context) }
+fun ParkingScreen(vm: ParkingViewModel = viewModel()) {
 
-    LaunchedEffect(Unit) {
-        viewModel.loadZonas()
-        viewModel.loadParks()
-    }
+    val zonasUi by vm.zonasUi.collectAsState()
+    val zonas by vm.zonas.collectAsState()
+    val paso by vm.paso.collectAsState()
+    val zonaSeleccionada by vm.zonaSeleccionada.collectAsState()
+    val spotSeleccionado by vm.spotSeleccionado.collectAsState()
 
-    Scaffold { innerPadding ->
-        ParkingContent(
+    LaunchedEffect(Unit) { vm.cargarZonas() }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFE5ECEF))
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        when(paso){
+            1 ->
+                {
+                    Image(
+                        painter = painterResource(R.drawable.mapa_completo),
+                        contentDescription = "",
+                        modifier = Modifier.size(500.dp)
+                    )
+
+                }
+            2 ->
+                {
+
+                }
+
+        }
+
+
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(innerPadding),
-            uiState = uiState,
-            onLoteSelected = viewModel::updateZona,
-            onParkSelected = viewModel::updatePark,
-            onSave = viewModel::savePark
-        )
-    }
-}
+                .background(Color.White, shape = MaterialTheme.shapes.medium)
+                .padding(24.dp)
+        ) {
+            when (paso) {
 
-@Composable
-fun ParkingContent(
-    modifier: Modifier,
-    uiState: ParkingUiState,
-    onLoteSelected: (String) -> Unit,
-    onParkSelected: (String) -> Unit,
-    onSave: () -> Unit
-) {
-    val context = LocalContext.current
-    var fechaInicio by remember { mutableStateOf("") }
-    var fechaFin by remember { mutableStateOf("") }
+                1 -> Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-    val calendario = Calendar.getInstance()
+                    PasoProgressBar(paso)
 
-    val datePickerInicio = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            fechaInicio = "$dayOfMonth/${month + 1}/$year"
-        },
-        calendario.get(Calendar.YEAR),
-        calendario.get(Calendar.MONTH),
-        calendario.get(Calendar.DAY_OF_MONTH)
-    )
+                    Text(
+                        "Selecciona una zona",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
 
-    val datePickerFin = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            fechaFin = "$dayOfMonth/${month + 1}/$year"
-        },
-        calendario.get(Calendar.YEAR),
-        calendario.get(Calendar.MONTH),
-        calendario.get(Calendar.DAY_OF_MONTH)
-    )
+                    ZonaDropdown(
+                        zonas = zonasUi,
+                        seleccion = zonasUi.firstOrNull() { it.nombre == zonaSeleccionada},
+                        onSelect = { zona ->
+                            vm.zonaSeleccionada.value   = zona.nombre }
+                    )
 
-    LazyColumn(modifier = modifier.padding(16.dp)) {
-        item {
-            Image(
-                modifier = Modifier.fillMaxWidth(),
-                painter = painterResource(R.drawable.map),
-                contentDescription = "Logo",
-                contentScale = ContentScale.Fit
-            )
+                    Row(
+                        modifier = Modifier.padding(top = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
 
-            Spacer(Modifier.height(16.dp))
+                        Button(
+                            onClick = { /* Cancelar */ },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Red
+                            )
 
-            Text("Seleccione la zona")
-            LoteDropDown(
-                items = uiState.listaZona,
-                selectedItem = uiState.lote,
-                onItemSelected = onLoteSelected
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            Text("Seleccione el lugar (solo se muestran los que están disponibles)")
-            LoteDropDown(
-                items = uiState.listaPark,
-                selectedItem = uiState.park,
-                onItemSelected = onParkSelected
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = fechaInicio,
-                onValueChange = {},
-                label = { Text("Fecha de inicio") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = {
-                    IconButton(onClick = { datePickerInicio.show() }) {
-                        Icon(
-                            imageVector = Icons.Filled.CalendarToday,
-                            contentDescription = "Seleccionar fecha inicio"
                         )
+                        {
+                            Text("Cancelar")
+                        }
+
+                        Button(
+                            onClick = { if (zonaSeleccionada != null) vm.siguientePaso() },
+                            enabled = zonaSeleccionada != null
+                        ) { Text("Siguiente") }
+                    }
+
+
+                }
+
+                2 -> Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    PasoProgressBar(paso)
+
+
+                    Text(
+                        "Selecciona un spot",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
+
+                    val spots = zonas[zonaSeleccionada] ?: emptyList()
+
+                    SpotDropdown(
+                        spots = spots,
+                        seleccion = spotSeleccionado,
+                        onSelect = { vm.spotSeleccionado.value = it }
+                    )
+
+                    Row(
+                        modifier = Modifier.padding(top = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+
+                        Button(onClick = { vm.retrocederPaso() }) {
+                            Text("Atrás")
+                        }
+
+                        Button(
+                            onClick = { if (spotSeleccionado != null) vm.siguientePaso() },
+                            enabled = spotSeleccionado != null
+                        ) { Text("Siguiente") }
+                    }
+
+                }
+
+                3 -> Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    PasoProgressBar(paso)
+
+
+                    Text(
+                        "Confirmar y pagar",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    )
+
+                    Text("Zona: $zonaSeleccionada")
+                    Text("Spot: ${spotSeleccionado?.codigo_spot}")
+
+                    Row(
+                        modifier = Modifier.padding(top = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+
+                        Button(onClick = { vm.retrocederPaso() }) {
+                            Text("Atrás")
+                        }
+
+                        Button(onClick = { /* Pago */ }) {
+                            Text("Pagar")
+                        }
                     }
                 }
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = fechaFin,
-                onValueChange = {},
-                label = { Text("Fecha final") },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = {
-                    IconButton(onClick = { datePickerFin.show() }) {
-                        Icon(
-                            imageVector = Icons.Filled.CalendarToday,
-                            contentDescription = "Seleccionar fecha final"
-                        )
-                    }
-                }
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onSave
-            ) {
-                Text("Guardar selección y continuar al pago")
-            }
-
-            if (uiState.isLoading)
-                Text("Cargando...", modifier = Modifier.padding(top = 8.dp))
-
-            if (uiState.isSuccess)
-                Text("Guardado correctamente", modifier = Modifier.padding(top = 8.dp))
-
-            uiState.error?.let {
-                Text(
-                    "Error: $it",
-                    modifier = Modifier.padding(top = 8.dp),
-                    color = MaterialTheme.colorScheme.error
-                )
             }
         }
     }
 }
+
+
+@Composable
+fun PasoProgressBar(paso: Int) {
+    val progreso = paso / 3f
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 20.dp)
+    ) {
+        Text(
+            text = "Paso $paso de 3",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        androidx.compose.material3.LinearProgressIndicator(
+            progress = progreso,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+        )
+    }
+}
+
+
+
+
+
+
+
+
+
+
+

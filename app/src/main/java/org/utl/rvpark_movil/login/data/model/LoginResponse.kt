@@ -10,6 +10,7 @@ data class LoginData(
     val id_usuario: Int,
     val nombre_usuario: String,
     val nombre: String,
+    val telefono: String,
     val rol: String,
     val id_rv_park: Int,
     val token: String
