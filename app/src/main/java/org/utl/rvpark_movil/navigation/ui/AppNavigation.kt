@@ -60,7 +60,7 @@ fun AppNavigation(startAtHome: Boolean = false) {
         }
 
         composable(Screen.NuevoContrato.route) {
-            ParkingScreen()
+            ParkingScreen(nav= navController)
         }
 
         composable(Screen.ChatBot.route){

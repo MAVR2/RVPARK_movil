@@ -22,7 +22,7 @@ fun GlassCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White.copy(alpha = 0.08f), shape = RoundedCornerShape(cornerRadiusDp.dp))
+            .background(Color.Black.copy(alpha = 0.19f), shape = RoundedCornerShape(cornerRadiusDp.dp))
             .border(
                 width = 1.dp,
                 color = Color.White.copy(alpha = 0.18f),

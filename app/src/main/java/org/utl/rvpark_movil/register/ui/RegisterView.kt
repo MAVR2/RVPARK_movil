@@ -1,6 +1,8 @@
 package org.utl.rvpark_movil.register.ui
 
 import DialogError
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,10 +16,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.utl.rvpark_movil.R
+import org.utl.rvpark_movil.utils.components.DialogSuccess
+import org.utl.rvpark_movil.utils.components.GlassCard
 import org.utl.rvpark_movil.utils.components.TextField
 
 @Composable
@@ -27,16 +36,17 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    if (uiState.isSuccess) {
-        onBack()
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
     ) {
+        Image(
+            painter = painterResource(R.drawable.login_bg),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize().blur(10.dp),
+            contentScale = ContentScale.Crop
+        )
 
         RegisterForm(
             uiState = uiState,
@@ -71,10 +81,8 @@ fun RegisterForm(
     val showDialog = uiState.error != null
 
 
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = Modifier.fillMaxWidth()
+    GlassCard(
+        modifier = Modifier.fillMaxWidth().padding(16.dp).padding(0.dp,25.dp)
     ) {
 
         Column(
@@ -87,19 +95,23 @@ fun RegisterForm(
             Icon(
                 imageVector = Icons.Default.PersonAdd,
                 contentDescription = null,
-                modifier = Modifier.size(70.dp)
+                modifier = Modifier.size(70.dp),
+                tint = Color.White
             )
 
             Text(
                 text = "Crear cuenta",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White
+
             )
 
             Text(
                 text = "Regístrate para continuar",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = Color.White
             )
 
             Spacer(Modifier.height(16.dp))
@@ -112,7 +124,11 @@ fun RegisterForm(
                 value = uiState.firstName,
                 onValueChange = OnFirstNameChange,
                 label = "Nombres",
-                icon = Icons.Default.Person
+                icon = Icons.Default.Person,
+                borderColor = Color.White,
+                labelColor = Color.White,
+                iconColor = Color.White,
+                textColor = Color.White
             )
 
             Spacer(Modifier.height(12.dp))
@@ -122,7 +138,11 @@ fun RegisterForm(
                 value = uiState.lastName,
                 onValueChange = OnLastNameChange,
                 label = "Apellidos",
-                icon = Icons.Default.Person
+                icon = Icons.Default.Person,
+                borderColor = Color.White,
+                labelColor = Color.White,
+                iconColor = Color.White,
+                textColor = Color.White
             )
 
             Spacer(Modifier.height(12.dp))
@@ -132,7 +152,11 @@ fun RegisterForm(
                 value = uiState.phone,
                 onValueChange = OnPhoneChange,
                 label = "Teléfono",
-                icon = Icons.Default.Phone
+                icon = Icons.Default.Phone,
+                borderColor = Color.White,
+                labelColor = Color.White,
+                iconColor = Color.White,
+                textColor = Color.White
             )
 
             Spacer(Modifier.height(12.dp))
@@ -142,7 +166,11 @@ fun RegisterForm(
                 value = uiState.email,
                 onValueChange = OnEmailChange,
                 label = "Correo electrónico",
-                icon = Icons.Default.Email
+                icon = Icons.Default.Email,
+                borderColor = Color.White,
+                labelColor = Color.White,
+                iconColor = Color.White,
+                textColor = Color.White
             )
 
             Spacer(Modifier.height(12.dp))
@@ -154,6 +182,10 @@ fun RegisterForm(
                 label = "Contraseña",
                 icon = Icons.Default.Lock,
                 isPassword = true,
+                borderColor = Color.White,
+                labelColor = Color.White,
+                iconColor = Color.White,
+                textColor = Color.White
             )
 
             Spacer(Modifier.height(12.dp))
@@ -165,6 +197,10 @@ fun RegisterForm(
                 label = "Confirmar contraseña",
                 icon = Icons.Default.Lock,
                 isPassword = true,
+                borderColor = Color.White,
+                labelColor = Color.White,
+                iconColor = Color.White,
+                textColor = Color.White
             )
 
             Spacer(Modifier.height(20.dp))
@@ -183,9 +219,19 @@ fun RegisterForm(
             Spacer(Modifier.height(10.dp))
 
             TextButton(onClick = onBack) {
-                Text("Ya tengo cuenta")
+                Text(text ="Ya tengo cuenta", color = Color.White)
             }
         }
+    }
+
+    if(uiState.isSuccess){
+        DialogSuccess(
+            onConfirm = { onBack() },
+            titulo = "Exito!",
+            texto = "Registro exitoso, por favor inicia sesion.",
+            onCancel = {},
+            icon = Icons.Default.Error
+        )
     }
 
     if (showDialog) {

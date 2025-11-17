@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.utl.rvpark_movil.R
 import org.utl.rvpark_movil.utils.components.GlassCard
+import org.utl.rvpark_movil.utils.components.LoadingDialog
 import org.utl.rvpark_movil.utils.components.TextField
 import org.utl.rvpark_movil.utils.preferences.UserRepository
 
@@ -51,16 +53,13 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val userRepository = UserRepository(context)
-    var showDialog by remember { mutableStateOf(false) }
+
+    val showDialog = uiState.error != null
 
     if (uiState.isSuccess) onLoginSuccess()
 
 
-    LaunchedEffect(uiState.error) {
-        showDialog = uiState.error != null
-    }
     Box(Modifier.fillMaxSize()) {
-        // Imagen de fondo DESENFOCADA
         Image(
             painter = painterResource(R.drawable.login_bg),
             contentDescription = null,
@@ -69,7 +68,6 @@ fun LoginScreen(
             contentScale = ContentScale.Crop
         )
 
-        // Card translúcida NÍTIDA encima
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -113,6 +111,7 @@ fun LoginScreen(
                         label = "Contraseña",
                         isPassword = true,
                         modifier = Modifier.fillMaxWidth(),
+                        icon = Icons.Default.Lock,
                         borderColor = Color.White,
                         labelColor = Color.White,
                         iconColor = Color.White,
@@ -127,7 +126,7 @@ fun LoginScreen(
                         enabled = !uiState.isLoading
                     ) {
 
-                        Text(if (uiState.isLoading) "Loading..." else "Log in")
+                        Text("Iniciar sesion")
                         Spacer(modifier = Modifier.size(10.dp))
                         Icon(
                             Icons.Default.Login,
@@ -138,13 +137,9 @@ fun LoginScreen(
 
                     Spacer(Modifier.height(12.dp))
 
-                    uiState.error?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
-
                     TextButton(onClick = onRegister) {
                         Text(
-                            text="Register",
+                            text="Registrarse",
                             color = Color.White
                         )
                     }
@@ -153,13 +148,18 @@ fun LoginScreen(
         }
     }
 
+    if(uiState.isLoading){
+        LoadingDialog(message = "Iniciando sesion...")
+    }
+
     if (showDialog) {
         DialogError(
-            onDismiss = { showDialog = false },
-            onConfirm = { showDialog = false },
+            onDismiss = { viewModel.clearError()},
+            onConfirm = { viewModel.clearError()},
             titulo = "Ups, algo salió mal",
             texto = uiState.error ?: "Ocurrió un problema.",
             icon = Icons.Default.Error
         )
     }
+
 }
