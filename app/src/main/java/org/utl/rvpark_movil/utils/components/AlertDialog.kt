@@ -41,11 +41,15 @@ fun DialogError(
             Text(texto)
         },
 
-        confirmButton = { },
+        confirmButton = {
+
+            TextButton(onClick = { onDismiss() }) {
+            Text("Aceptar")
+        }},
 
         dismissButton = {
             TextButton(onClick = { onDismiss() }) {
-                Text("Aceptar")
+                Text("Cancelar")
             }
         }
     )

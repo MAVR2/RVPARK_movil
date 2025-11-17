@@ -226,9 +226,11 @@ fun RegisterForm(
 
     if(uiState.isSuccess){
         DialogSuccess(
-            onConfirm = {onBack()},
+            onConfirm = { onBack() },
             titulo = "Exito!",
-            texto = "Registro exitoso, por favor inicia sesion."
+            texto = "Registro exitoso, por favor inicia sesion.",
+            onCancel = {},
+            icon = Icons.Default.Error
         )
     }
 

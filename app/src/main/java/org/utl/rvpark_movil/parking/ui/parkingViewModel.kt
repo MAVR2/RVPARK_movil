@@ -6,14 +6,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.utl.rvpark_movil.parking.data.model.Spot
 import org.utl.rvpark_movil.parking.data.repository.ParkingRepository
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 data class ZonaUi(
     val nombre: String,
     val spots: List<Spot>
 )
-
-
 
 class ParkingViewModel(
     private val repo: ParkingRepository = ParkingRepository()
@@ -22,6 +23,11 @@ class ParkingViewModel(
     val zonasUi = MutableStateFlow<List<ZonaUi>>(emptyList())
 
     val zonas = MutableStateFlow<Map<String, List<Spot>>>(emptyMap())
+
+    val fechaInicio = MutableStateFlow<String?>(null)
+    val fechaFin = MutableStateFlow<String?>(null)
+
+
 
     val zonaSeleccionada = MutableStateFlow<String?>(null)
     val spotSeleccionado = MutableStateFlow<Spot?>(null)
@@ -34,6 +40,7 @@ class ParkingViewModel(
             zonasUi.value = mapa.map { (nombre, spots) ->
                 ZonaUi(nombre, spots)
             }
+            zonas.value = mapa
         }
     }
 
@@ -41,7 +48,9 @@ class ParkingViewModel(
         paso.value = paso.value + 1
     }
     fun retrocederPaso() {
-        paso.value = paso.value - 1
+            paso.value -= 1
     }
+
+
 }
 

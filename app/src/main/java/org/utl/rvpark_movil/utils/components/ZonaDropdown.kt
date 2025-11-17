@@ -59,11 +59,20 @@ fun ZonaDropdown(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Text(
-                    text = "Zona selecionada: ${seleccion?.nombre}" ?: "Selecciona una zona",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f)
-                )
+                if(seleccion?.nombre.isNullOrBlank()){
+                    Text(text = "Selecione una zona",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                }else{
+                    Text(
+                        text = "Zona selecionada: ${seleccion?.nombre}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+
 
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,

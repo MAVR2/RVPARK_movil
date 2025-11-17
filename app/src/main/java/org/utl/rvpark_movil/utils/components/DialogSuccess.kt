@@ -17,12 +17,13 @@ import androidx.compose.material.icons.filled.CheckCircle
 @Composable
 fun DialogSuccess(
     onConfirm: () -> Unit,
+    onCancel: () -> Unit,
     titulo: String,
     texto: String,
     icon: ImageVector = Icons.Default.CheckCircle
 ) {
     AlertDialog(
-        onDismissRequest = { onConfirm() },
+        onDismissRequest = { onCancel() },
 
         icon = {
             Icon(
@@ -43,16 +44,11 @@ fun DialogSuccess(
             }
         },
 
-        dismissButton = {}
+        dismissButton = {
+            TextButton(onClick = { onCancel() }) {
+                Text("cancelar")
+            }
+        }
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun DialogSuccessPreview() {
-    DialogSuccess(
-        onConfirm = {},
-        titulo = "Éxito",
-        texto = "La operación se completó correctamente"
-    )
-}
