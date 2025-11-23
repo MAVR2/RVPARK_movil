@@ -51,9 +51,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import org.utl.rvpark_movil.R
+import org.utl.rvpark_movil.parking.ui.steps.fechasScreen
+import org.utl.rvpark_movil.parking.ui.steps.PagoScreen
+import org.utl.rvpark_movil.parking.ui.steps.spotScreen
+import org.utl.rvpark_movil.parking.ui.steps.zonaScreen
 import org.utl.rvpark_movil.utils.components.DialogSuccess
-import org.utl.rvpark_movil.utils.components.SpotDropdown
-import org.utl.rvpark_movil.utils.components.ZonaDropdown
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -94,7 +96,7 @@ fun ParkingScreen(
 
 
 
-    val paso by vm.paso.collectAsState()
+    val paso by vm.uiState.collectAsState()
     val zonaSeleccionada = uiState.zonaSeleccionada
     val spotSeleccionado = uiState.spotSeleccionado
 
@@ -113,7 +115,7 @@ fun ParkingScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        when (paso) {
+        when (uiState.paso) {
             1 -> {
                 Image(
                     painter = painterResource(R.drawable.mapa_completo),
@@ -151,6 +153,27 @@ fun ParkingScreen(
                     )
                 }
             }
+            3  ->{
+                LaunchedEffect(Unit) {
+                    while (tiempo > 0) {
+                        delay(1000)
+                        tiempo--
+                    }
+                    noTiempo = true
+                }
+            }
+            4 -> {
+                LaunchedEffect(Unit) {
+                    while (tiempo > 0) {
+                        delay(1000)
+                        tiempo--
+                    }
+                    noTiempo = true
+                }
+                LaunchedEffect(Unit) {
+                    vm.obtenerCalculoRenta()
+                }
+            }
 
         }
 
@@ -161,127 +184,44 @@ fun ParkingScreen(
                 .background(Color.White, shape = MaterialTheme.shapes.medium)
                 .padding(24.dp)
         ) {
-            when (paso) {
+            when (uiState.paso) {
 
-                1 -> Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    PasoProgressBar(paso)
-
-                    Text(
-                        "Selecciona una zona",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 20.dp)
-                    )
-
-                    ZonaDropdown(
-                        zonas = uiState.zonas,
-                        seleccion = uiState.zonas.firstOrNull { it.nombre == zonaSeleccionada },
-                        onSelect = { zona ->
-                            vm.seleccionarZona(zona.nombre)
+                1 ->{
+                    zonaScreen(
+                        paso = uiState.paso,
+                        uiState = uiState,
+                        vm = vm,
+                        onCancelar = {
+                            cancelar = true
                         }
                     )
-
-                    Row(
-                        modifier = Modifier.padding(top = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-
-                        Button(
-                            onClick = {
-
-                                cancelar = true
-                                      },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Red
-                            )
-
-                        )
-                        {
-                            Text("Cancelar")
-                        }
-
-                        Button(
-                            onClick = { if (zonaSeleccionada != null) vm.siguientePaso() },
-                            enabled = zonaSeleccionada != null
-                        ) { Text("Siguiente") }
-                    }
-
-
                 }
 
-                2 -> Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    PasoProgressBar(paso)
-
-
-                    Text(
-                        "Selecciona un spot",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 20.dp)
-                    )
-
-                    val spots = uiState.zonas
-                        .firstOrNull { it.nombre == zonaSeleccionada }
-                        ?.spots ?: emptyList()
-
-
-                    SpotDropdown(
-                        spots = spots,
-                        seleccion = uiState.spotSeleccionado,
-                        onSelect = { vm.SeleccionarSpot(it) }
-                    )
-
-                    Row(
-                        modifier = Modifier.padding(top = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-
-                        Button(onClick = {
+                2 ->{
+                    spotScreen(
+                        paso = uiState.paso,
+                        uiState = uiState,
+                        vm = vm,
+                        onAtras = {
                             vm.retrocederPaso()
-                            vm.spotSeleccionado.value = null
-                        }) {
-                            Text("Atrás")
-                        }
-
-                        Button(
-                            onClick = {
+                        },
+                        onSiguiente = {
+                            mostrarDialogo = true
+                            if (uiState.spotSeleccionado != null) {
                                 mostrarDialogo = true
-                                if (spotSeleccionado != null) {
-                                    mostrarDialogo = true
-                                }
-                                Log.d("debug", "revisar estado")
-                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
-                            },
-                            enabled = spotSeleccionado != null
-                        ) { Text("Siguiente") }
-                    }
-
+                            }
+                            uiState.spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+                        }
+                    )
                 }
 
                 3 -> {
-                    LaunchedEffect(Unit) {
-                        while (tiempo > 0) {
-                            delay(1000)
-                            tiempo--
-                        }
-                        noTiempo = true
-                    }
-
-
-
-                    val minutos = tiempo / 60
-                    val segundos = tiempo % 60
-
                     if (noTiempo) {
-                        mostrarDialogo =false
-                        mostrarErrorFecha =false
+                        mostrarDialogo = false
+                        mostrarErrorFecha = false
                         mostrarerrorFechaFin = false
-                        mostrarFechaInicio  =false
-                        mostrarFechaFin =false
+                        mostrarFechaInicio = false
+                        mostrarFechaFin = false
                         DialogError(
                             onDismiss = {
                                 nav.navigate("home")
@@ -297,347 +237,55 @@ fun ParkingScreen(
                             icon = Icons.Default.Error
                         )
                     }
-                    Column(
 
-                    ) {
+                    val minutos = tiempo / 60
+                    val segundos = tiempo % 60
 
-                        PasoProgressBar(paso)
-
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier
-                                .padding(bottom = 16.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = String.format("%02d:%02d", minutos, segundos),
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .fillMaxWidth()
-                                    .wrapContentWidth(Alignment.CenterHorizontally),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 20.dp, bottom = 16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                "Solo unos detalles más..",
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier.padding(bottom = 20.dp)
-                            )
-                        }
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                        ){
-                            val fechaHoy = Instant.ofEpochMilli(startOfTodayMillis())
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ){
-                                Row(
-                                    modifier = Modifier
-                                        .padding(16.dp, 8.dp)
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically,
-
-                                ){
-                                    Icon(imageVector = Icons.Default.Info, contentDescription = "")
-                                }
-
-                                Row(
-                                    modifier = Modifier
-                                        .padding(16.dp, 8.dp)
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically,
-
-                                    ){
-                                    Text(
-                                        text = "La fecha de inicio debe ser posterior a $fechaHoy.",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-
-                                }
-                                Row(
-                                    modifier = Modifier
-                                        .padding(16.dp, 8.dp)
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = "Esto se debe a que el sistema confirma las reservaciones con un día de anticipación, garantizando la disponibilidad del espacio y la correcta programación de su contrato.",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-
-                            }
-
-                        }
-                        Spacer(modifier= Modifier.size(16.dp))
-
-
-                        Text("Fecha Inicio")
-                        Column(
-                            modifier = Modifier
-                                .border(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                        )
-                        {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.White, shape = RoundedCornerShape(12.dp))
-                                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                                    .clickable { mostrarFechaInicio = true }
-                            ) {
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = stateInicio.selectedDateMillis?.let {
-                                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                                        } ?: "Seleccione la fecha de inicio",
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(end = 12.dp)
-                                    )
-
-                                    Icon(
-                                        imageVector = Icons.Default.CalendarMonth,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-
-                            }
-
-                        }
-
-                        Spacer(modifier= Modifier.size(16.dp))
-
-                        Text("Fecha Fin")
-                        Column(
-                            modifier = Modifier
-                                .border(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                        )
-                        {
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.White, shape = RoundedCornerShape(12.dp))
-                                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                                    .clickable { mostrarFechaFin = true }
-                            ) {
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = stateFin.selectedDateMillis?.let {
-                                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                                        } ?: "Seleccione la fecha de fin",
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(end = 12.dp)
-                                    )
-
-                                    Icon(
-                                        imageVector = Icons.Default.CalendarMonth,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-
-                            }
-
-
-                        }
-                        if(uiState.fechaFin == null){
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.dp)
-                            ){
-                                Icon(
-                                    Icons.Default.Info, tint = MaterialTheme.colorScheme.primary,
-                                    contentDescription = "",
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier= Modifier.size(16.dp))
-                                Text("Si dejas la fecha fin en blanco, se cobrará el resto del período")
-                            }
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ){
-                            Button(
-                                colors = ButtonColors(
-                                    containerColor = Color.Red,
-                                    contentColor =Color.White,
-                                    disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
-                                    disabledContentColor = MaterialTheme.colorScheme.secondary
-                                ),
-                                modifier = Modifier
-                                    .padding(16.dp),
-                                onClick ={
-
-                                        cancelar = true
-                                }){
-                                Text(text="Cancelar",)
-                            }
-                            Button(
-                                modifier = Modifier.padding(16.dp),
-                                enabled = uiState.fechaInicio != null,
-                                onClick ={
-                                    vm.siguientePaso()
-                                }){
-                                Text(text="confirmar",)
-                            }
-                        }
-                    }
-
+                    fechasScreen(
+                        minutos = minutos,
+                        segundos = segundos,
+                        uiState = uiState,
+                        vm = vm,
+                        stateInicio = stateInicio,
+                        stateFin = stateFin,
+                        onMostrarFechaInicio = { mostrarFechaInicio = true },
+                        onMostrarFechaFin = {mostrarFechaFin = true},
+                        onCancelar = {cancelar = true}
+                    )
                 }
-                4 -> {
-                    if (paso == 4) {
+                4 ->{
+                    if (noTiempo) {
+                        mostrarDialogo = false
+                        mostrarErrorFecha = false
+                        mostrarerrorFechaFin = false
+                        mostrarFechaInicio = false
+                        mostrarFechaFin = false
+                        DialogError(
+                            onDismiss = {
+                                nav.navigate("home")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+                            },
+                            onConfirm = {
+                                nav.navigate("home")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
 
-                        LaunchedEffect(Unit) {
-                            while (tiempo > 0) {
-                                delay(1000)
-                                tiempo--
-                            }
-                            noTiempo = true
-                        }
-
-
-
-                        val minutos = tiempo / 60
-                        val segundos = tiempo % 60
-
-                        if (noTiempo) {
-                            mostrarDialogo =false
-                            mostrarErrorFecha =false
-                            mostrarerrorFechaFin = false
-                            mostrarFechaInicio  =false
-                            mostrarFechaFin =false
-                            DialogError(
-                                onDismiss = {
-                                    nav.navigate("home")
-                                    spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
-                                            },
-                                onConfirm = {
-                                    nav.navigate("home")
-                                    spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
-                                },
-                                titulo = "Se terminó el tiempo para solicitar el spot",
-                                texto = "Por favor vuelve a intentarlo.",
-                                icon = Icons.Default.Error
-                            )
-                        }
-
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-
-                            PasoProgressBar(paso)
-
-
-                            Card(
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                ),
-                                modifier = Modifier
-                                    .padding(bottom = 16.dp)
-                                    .fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = String.format("%02d:%02d", minutos, segundos),
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .fillMaxWidth()
-                                        .wrapContentWidth(Alignment.CenterHorizontally),
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-
-
-                            Text(
-                                "Confirme la informacion",
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier.padding(bottom = 20.dp)
-                            )
-
-                            Text("Zona: $zonaSeleccionada")
-                            Text("Spot: ${spotSeleccionado?.codigo_spot}")
-
-                            Text(
-                                "Inicio: " + (stateInicio.selectedDateMillis?.let {
-                                    Instant.ofEpochMilli(it)
-                                        .atZone(ZoneId.systemDefault())
-                                        .toLocalDate()
-                                } ?: "No seleccionada"),
-                                modifier = Modifier.padding(top = 10.dp)
-                            )
-
-                            Text(
-                                "Fin: " + (stateFin.selectedDateMillis?.let {
-                                    Instant.ofEpochMilli(it)
-                                        .atZone(ZoneId.systemDefault())
-                                        .toLocalDate()
-                                } ?: "No seleccionada"),
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-
-                            Row(
-                                modifier = Modifier.padding(top = 20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-
-                                Button(onClick = { vm.retrocederPaso() }) {
-                                    Text("Atrás")
-                                }
-
-                                Button(onClick = { /* Pago */ }) {
-                                    Text("Pagar")
-                                }
-                            }
-                        }
+                            },
+                            titulo = "Se terminó el tiempo para solicitar el spot",
+                            texto = "Por favor vuelve a intentarlo.",
+                            icon = Icons.Default.Error
+                        )
                     }
+
+                    val minutos = tiempo / 60
+                    val segundos = tiempo % 60
+
+                    PagoScreen(
+                        minutos= minutos,
+                        segundos= segundos,
+                        uiState = uiState,
+                        vm = vm
+                    )
+
                 }
             }
         }
