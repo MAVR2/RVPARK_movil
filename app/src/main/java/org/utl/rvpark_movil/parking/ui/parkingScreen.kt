@@ -1,26 +1,35 @@
 package org.utl.rvpark_movil.parking.ui
 
 import DialogError
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,9 +45,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import org.utl.rvpark_movil.R
@@ -47,9 +56,12 @@ import org.utl.rvpark_movil.utils.components.SpotDropdown
 import org.utl.rvpark_movil.utils.components.ZonaDropdown
 import java.text.SimpleDateFormat
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+import org.utl.rvpark_movil.utils.components.PasoProgressBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,39 +71,37 @@ fun ParkingScreen(
     nav: NavHostController
 ) {
 
-    val zonasUi by vm.zonasUi.collectAsState()
-    val zonas by vm.zonas.collectAsState()
+    val uiState by vm.uiState.collectAsState()
 
     var mostrarFechaInicio by remember { mutableStateOf(false) }
     var mostrarFechaFin by remember { mutableStateOf(false) }
 
-    val stateInicio = rememberDatePickerState()
-    val stateFin = rememberDatePickerState()
+    var mostrarErrorFecha by remember { mutableStateOf(false) }
+    var mostrarerrorFechaFin by remember { mutableStateOf(false) }
+
+    var cancelar by remember { mutableStateOf(false) }
+
+
+
+    var tiempo by remember { mutableStateOf(300) }
+    var noTiempo by remember { mutableStateOf(false) }
+
+    var stateInicio = rememberDatePickerState()
+
+    var stateFin = rememberDatePickerState(
+        initialSelectedDateMillis = null
+    )
+
+
 
     val paso by vm.paso.collectAsState()
-    val zonaSeleccionada by vm.zonaSeleccionada.collectAsState()
-    val spotSeleccionado by vm.spotSeleccionado.collectAsState()
+    val zonaSeleccionada = uiState.zonaSeleccionada
+    val spotSeleccionado = uiState.spotSeleccionado
+
 
     var mostrarDialogo by remember { mutableStateOf(false) }
 
 
-    val mapaRes = when (zonaSeleccionada) {
-        "A" -> R.drawable.mapa_a
-        "B" -> R.drawable.mapa_b
-        "C" -> R.drawable.mapa_c
-        "D" -> R.drawable.mapa_a
-        "F" -> R.drawable.mapa_b
-        "G" -> R.drawable.mapa_c
-        "H" -> R.drawable.mapa_c
-        "I" -> R.drawable.mapa_a
-        "J" -> R.drawable.mapa_b
-        "K" -> R.drawable.mapa_c
-        "L" -> R.drawable.mapa_a
-        "M" -> R.drawable.mapa_b
-        "N" -> R.drawable.mapa_c
-        "O" -> R.drawable.mapa_o
-        else -> null
-    }
 
     LaunchedEffect(Unit) { vm.cargarZonas() }
 
@@ -166,10 +176,10 @@ fun ParkingScreen(
                     )
 
                     ZonaDropdown(
-                        zonas = zonasUi,
-                        seleccion = zonasUi.firstOrNull() { it.nombre == zonaSeleccionada },
+                        zonas = uiState.zonas,
+                        seleccion = uiState.zonas.firstOrNull { it.nombre == zonaSeleccionada },
                         onSelect = { zona ->
-                            vm.zonaSeleccionada.value = zona.nombre
+                            vm.seleccionarZona(zona.nombre)
                         }
                     )
 
@@ -179,7 +189,10 @@ fun ParkingScreen(
                     ) {
 
                         Button(
-                            onClick = { nav.navigate("home") },
+                            onClick = {
+
+                                cancelar = true
+                                      },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Red
                             )
@@ -211,12 +224,15 @@ fun ParkingScreen(
                         modifier = Modifier.padding(bottom = 20.dp)
                     )
 
-                    val spots = zonas[zonaSeleccionada] ?: emptyList()
+                    val spots = uiState.zonas
+                        .firstOrNull { it.nombre == zonaSeleccionada }
+                        ?.spots ?: emptyList()
+
 
                     SpotDropdown(
                         spots = spots,
-                        seleccion = spotSeleccionado,
-                        onSelect = { vm.spotSeleccionado.value = it }
+                        seleccion = uiState.spotSeleccionado,
+                        onSelect = { vm.SeleccionarSpot(it) }
                     )
 
                     Row(
@@ -237,6 +253,8 @@ fun ParkingScreen(
                                 if (spotSeleccionado != null) {
                                     mostrarDialogo = true
                                 }
+                                Log.d("debug", "revisar estado")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
                             },
                             enabled = spotSeleccionado != null
                         ) { Text("Siguiente") }
@@ -245,21 +263,310 @@ fun ParkingScreen(
                 }
 
                 3 -> {
+                    LaunchedEffect(Unit) {
+                        while (tiempo > 0) {
+                            delay(1000)
+                            tiempo--
+                        }
+                        noTiempo = true
+                    }
 
-                    if (paso == 3) {
 
-                        // Cronómetro 5 min (300s)
-                        var tiempo by remember { mutableStateOf(300) }
+
+                    val minutos = tiempo / 60
+                    val segundos = tiempo % 60
+
+                    if (noTiempo) {
+                        mostrarDialogo =false
+                        mostrarErrorFecha =false
+                        mostrarerrorFechaFin = false
+                        mostrarFechaInicio  =false
+                        mostrarFechaFin =false
+                        DialogError(
+                            onDismiss = {
+                                nav.navigate("home")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+                            },
+                            onConfirm = {
+                                nav.navigate("home")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+
+                            },
+                            titulo = "Se terminó el tiempo para solicitar el spot",
+                            texto = "Por favor vuelve a intentarlo.",
+                            icon = Icons.Default.Error
+                        )
+                    }
+                    Column(
+
+                    ) {
+
+                        PasoProgressBar(paso)
+
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            modifier = Modifier
+                                .padding(bottom = 16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = String.format("%02d:%02d", minutos, segundos),
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth()
+                                    .wrapContentWidth(Alignment.CenterHorizontally),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 20.dp, bottom = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Solo unos detalles más..",
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier.padding(bottom = 20.dp)
+                            )
+                        }
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                        ){
+                            val fechaHoy = Instant.ofEpochMilli(startOfTodayMillis())
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
+                            Column(
+                                modifier = Modifier.padding(16.dp)
+                            ){
+                                Row(
+                                    modifier = Modifier
+                                        .padding(16.dp, 8.dp)
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+
+                                ){
+                                    Icon(imageVector = Icons.Default.Info, contentDescription = "")
+                                }
+
+                                Row(
+                                    modifier = Modifier
+                                        .padding(16.dp, 8.dp)
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+
+                                    ){
+                                    Text(
+                                        text = "La fecha de inicio debe ser posterior a $fechaHoy.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .padding(16.dp, 8.dp)
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = "Esto se debe a que el sistema confirma las reservaciones con un día de anticipación, garantizando la disponibilidad del espacio y la correcta programación de su contrato.",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+
+                            }
+
+                        }
+                        Spacer(modifier= Modifier.size(16.dp))
+
+
+                        Text("Fecha Inicio")
+                        Column(
+                            modifier = Modifier
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                        )
+                        {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                                    .clickable { mostrarFechaInicio = true }
+                            ) {
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = stateInicio.selectedDateMillis?.let {
+                                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                                        } ?: "Seleccione la fecha de inicio",
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(end = 12.dp)
+                                    )
+
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarMonth,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+
+                            }
+
+                        }
+
+                        Spacer(modifier= Modifier.size(16.dp))
+
+                        Text("Fecha Fin")
+                        Column(
+                            modifier = Modifier
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                        )
+                        {
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                                    .clickable { mostrarFechaFin = true }
+                            ) {
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = stateFin.selectedDateMillis?.let {
+                                            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                                        } ?: "Seleccione la fecha de fin",
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(end = 12.dp)
+                                    )
+
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarMonth,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+
+                            }
+
+
+                        }
+                        if(uiState.fechaFin == null){
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp)
+                            ){
+                                Icon(
+                                    Icons.Default.Info, tint = MaterialTheme.colorScheme.primary,
+                                    contentDescription = "",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier= Modifier.size(16.dp))
+                                Text("Si dejas la fecha fin en blanco, se cobrará el resto del período")
+                            }
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ){
+                            Button(
+                                colors = ButtonColors(
+                                    containerColor = Color.Red,
+                                    contentColor =Color.White,
+                                    disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
+                                    disabledContentColor = MaterialTheme.colorScheme.secondary
+                                ),
+                                modifier = Modifier
+                                    .padding(16.dp),
+                                onClick ={
+
+                                        cancelar = true
+                                }){
+                                Text(text="Cancelar",)
+                            }
+                            Button(
+                                modifier = Modifier.padding(16.dp),
+                                enabled = uiState.fechaInicio != null,
+                                onClick ={
+                                    vm.siguientePaso()
+                                }){
+                                Text(text="confirmar",)
+                            }
+                        }
+                    }
+
+                }
+                4 -> {
+                    if (paso == 4) {
 
                         LaunchedEffect(Unit) {
                             while (tiempo > 0) {
                                 delay(1000)
                                 tiempo--
                             }
+                            noTiempo = true
                         }
+
+
 
                         val minutos = tiempo / 60
                         val segundos = tiempo % 60
+
+                        if (noTiempo) {
+                            mostrarDialogo =false
+                            mostrarErrorFecha =false
+                            mostrarerrorFechaFin = false
+                            mostrarFechaInicio  =false
+                            mostrarFechaFin =false
+                            DialogError(
+                                onDismiss = {
+                                    nav.navigate("home")
+                                    spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+                                            },
+                                onConfirm = {
+                                    nav.navigate("home")
+                                    spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+                                },
+                                titulo = "Se terminó el tiempo para solicitar el spot",
+                                texto = "Por favor vuelve a intentarlo.",
+                                icon = Icons.Default.Error
+                            )
+                        }
 
 
                         Column(
@@ -268,19 +575,26 @@ fun ParkingScreen(
 
                             PasoProgressBar(paso)
 
+
                             Card(
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.primary
                                 ),
-                                modifier = Modifier.padding(bottom = 16.dp)
+                                modifier = Modifier
+                                    .padding(bottom = 16.dp)
+                                    .fillMaxWidth()
                             ) {
                                 Text(
                                     text = String.format("%02d:%02d", minutos, segundos),
                                     style = MaterialTheme.typography.headlineMedium,
-                                    modifier = Modifier.padding(16.dp),
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .fillMaxWidth()
+                                        .wrapContentWidth(Alignment.CenterHorizontally),
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
+
 
                             Text(
                                 "Confirme la informacion",
@@ -291,7 +605,6 @@ fun ParkingScreen(
                             Text("Zona: $zonaSeleccionada")
                             Text("Spot: ${spotSeleccionado?.codigo_spot}")
 
-                            // Mostrar fechas seleccionadas
                             Text(
                                 "Inicio: " + (stateInicio.selectedDateMillis?.let {
                                     Instant.ofEpochMilli(it)
@@ -309,22 +622,6 @@ fun ParkingScreen(
                                 } ?: "No seleccionada"),
                                 modifier = Modifier.padding(top = 4.dp)
                             )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-
-                                Button(onClick = { mostrarFechaInicio = true }) {
-                                    Text("Fecha inicio")
-                                }
-
-                                Button(onClick = { mostrarFechaFin = true }) {
-                                    Text("Fecha fin")
-                                }
-                            }
-
-
 
                             Row(
                                 modifier = Modifier.padding(top = 20.dp),
@@ -346,31 +643,73 @@ fun ParkingScreen(
         }
     }
 
-    // DIÁLOGO FECHA INICIO
-    if (mostrarFechaInicio) {
-        DatePickerDialog(
-            onDismissRequest = { mostrarFechaInicio = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    mostrarFechaInicio = false
-                    vm.fechaInicio.value = stateInicio.selectedDateMillis?.let { millisToMysqlDate(it) }
-                }) {
-                    Text("OK")
-                }
-            }
-        ) {
-            DatePicker(state = stateInicio)
-        }
-    }
+   if(mostrarFechaInicio){
+       DatePickerDialog(
+           onDismissRequest = {
+               vm.seleccionarFechaInicio(null)
+               mostrarFechaInicio = false
+           },
+           confirmButton = {
+               TextButton(onClick = {
+                   val selected = stateInicio.selectedDateMillis
+                   val today = startOfTodayMillis()
 
-// DIÁLOGO FECHA FIN
+                   if(selected == null)
+                   {
+                       mostrarFechaInicio = false
+                       mostrarErrorFecha = true
+
+                   }else if(selected < today){
+
+                       mostrarFechaInicio = false
+                       mostrarErrorFecha = true
+
+                   }else {
+                       mostrarFechaInicio = false
+                       mostrarErrorFecha = false
+                       vm.seleccionarFechaInicio(millisToMysqlDate(selected))
+                   }
+               }) {
+                   Text(text = "ok" )
+               }
+           }
+       ) {
+           DatePicker(state = stateInicio)
+       }
+   }
+
     if (mostrarFechaFin) {
         DatePickerDialog(
-            onDismissRequest = { mostrarFechaFin = false },
+            onDismissRequest = {
+                vm.seleccionarFechaFin(null)
+                mostrarFechaFin = false
+                stateFin.selectedDateMillis = null
+
+            },
             confirmButton = {
                 TextButton(onClick = {
-                    mostrarFechaFin = false
-                    vm.fechaFin.value = stateFin.selectedDateMillis?.let { millisToMysqlDate(it) }
+                    val selected = stateFin.selectedDateMillis
+                    val today = startOfTodayMillis()
+                    val inicioSelected = stateInicio.selectedDateMillis
+                    when {
+                        selected == null -> {
+                            mostrarFechaFin = false
+                            mostrarerrorFechaFin = true
+                        }
+                        selected < today -> {
+                            mostrarFechaFin = false
+                            mostrarerrorFechaFin = true
+                        }
+                        inicioSelected != null && selected < inicioSelected -> {
+                            mostrarerrorFechaFin = true
+                            mostrarerrorFechaFin = false
+                        }
+                        else -> {
+                            mostrarFechaFin = false
+                            mostrarerrorFechaFin = false
+                            vm.seleccionarFechaFin(millisToMysqlDate(selected))
+                        }
+                    }
                 }) {
                     Text("OK")
                 }
@@ -380,8 +719,57 @@ fun ParkingScreen(
         }
     }
 
+    if (mostrarErrorFecha) {
+        DialogError(
+            titulo = "Fecha inválida",
+            texto = "La fecha de inicio no puede ser anterior a hoy.",
+            onDismiss = {
+                mostrarErrorFecha = false
+                mostrarFechaInicio = true
+                        },
+            onConfirm = {
+                mostrarErrorFecha = false
+                mostrarFechaInicio = true
+            },
+            icon = Icons.Default.Error
+        )
+    }
 
+    if (mostrarerrorFechaFin) {
+        DialogError(
+            titulo = "Fecha inválida",
+            texto = "La fecha de fin no puede ser anterior a hoy.",
+            onDismiss = {
+                mostrarErrorFecha = false
+                mostrarFechaFin = true
+                        },
+            onConfirm = {
+                mostrarErrorFecha = false
+                mostrarFechaFin = true
+                        },
+            icon = Icons.Default.Error
+        )
+    }
 
+    if (cancelar) {
+        DialogSuccess(
+            titulo = "Esta seguro que desea cancelar?",
+            texto = "se cancelara el proceso de contrato del spot",
+            onCancel = {
+                cancelar = false
+            },
+            onConfirm = {
+                Log.d("debug","se cancelo y se fue a home")
+                spotSeleccionado?.let {
+                    vm.cancelarSpot(it.id_spot)
+                }
+                nav.navigate("home")
+                cancelar = false
+
+            },
+            icon = Icons.Default.Error
+        )
+    }
 
     if(mostrarDialogo){
         DialogSuccess(
@@ -404,38 +792,9 @@ fun millisToMysqlDate(millis: Long): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     return formatter.format(Date(millis))
 }
-
-@Composable
-fun PasoProgressBar(paso: Int) {
-    val progreso = paso / 3f
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 20.dp)
-    ) {
-        Text(
-            text = "Paso $paso de 3",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
-
-        LinearProgressIndicator(
-            progress = progreso,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp)
-        )
-    }
+fun startOfTodayMillis(): Long {
+    return LocalDate.now()
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
 }
-
-
-
-
-
-
-
-
-
-
-
