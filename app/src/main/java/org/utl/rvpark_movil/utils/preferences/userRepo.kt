@@ -15,9 +15,7 @@ class UserRepository(private val context: Context) {
         val USER_ID = stringPreferencesKey("id_usuario")
         val USER_EMAIL = stringPreferencesKey("nombre_usuario")
         val NOMBRE = stringPreferencesKey("nombre")
-
         val TELEFONO = stringPreferencesKey("telefono")
-
         val ROL = stringPreferencesKey("rol")
         val ID_RVPARK = stringPreferencesKey("id_rv_park")
         val TOKEN = stringPreferencesKey("jwt_token")
@@ -35,9 +33,9 @@ class UserRepository(private val context: Context) {
         dataStore.edit { prefs ->
             prefs[USER_ID] = id_usuario
             prefs[USER_EMAIL] = nombre_usuario
+            prefs[NOMBRE] = nombre
             prefs[TELEFONO] = telefono
             prefs[ROL] = rol
-            prefs[NOMBRE] =nombre
             prefs[ID_RVPARK] = id_rv_park
             prefs[TOKEN] = token
         }
@@ -60,7 +58,10 @@ class UserRepository(private val context: Context) {
     val user2: Flow<userUiState> = dataStore.data.map { prefs ->
         userUiState(
             id = prefs[USER_ID] ?: "",
-            email = prefs[USER_EMAIL] ?: ""
+            email = prefs[USER_EMAIL] ?: "",
+            name = prefs[NOMBRE] ?: "",
+            phone = prefs[TELEFONO] ?: "",
+            rol = prefs[ROL] ?: "",
         )
     }
 
@@ -69,7 +70,7 @@ class UserRepository(private val context: Context) {
     }
 
     val nombre: Flow<String?> = dataStore.data.map { prefs ->
-    prefs[NOMBRE]
+        prefs[NOMBRE]
     }
 
     val user_rvpark: Flow<String?> = dataStore.data.map { prefs ->

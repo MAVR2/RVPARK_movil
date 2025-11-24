@@ -43,12 +43,12 @@ import com.itextpdf.layout.element.Image as PdfImage
 
 @Composable
 fun ContratoDetailScreen(
-    contratoId: Int,
+    id_renta: Int,
     viewModel: HomeViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val contrato = uiState.contratos.find { it.id_renta == contratoId } ?: Contrato(
-        id_renta = contratoId,
+    val contrato = uiState.contratos.find { it.id_renta == id_renta } ?: Contrato(
+        id_renta = id_renta,
         id_cliente = 999,
         id_spot = 1,
         fecha_inicio = "2025-10-01",

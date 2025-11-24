@@ -1,14 +1,19 @@
 package org.utl.rvpark_movil.parking.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.utl.rvpark_movil.parking.data.model.CalculoPago
+import org.utl.rvpark_movil.parking.data.model.CrearRentaRequest
 import org.utl.rvpark_movil.parking.data.model.Spot
 import org.utl.rvpark_movil.parking.data.model.rentaCalRequest
 import org.utl.rvpark_movil.parking.data.repository.ParkingRepository
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import kotlin.toString
 
 data class ZonaUi(
     val nombre: String,
@@ -28,6 +33,10 @@ data class ParkingUiState(
     val rentaCalculada: CalculoPago? =null,
     val totalDias: Int? = null,
 
+    val numeroTarjeta: String = "",
+    val expiracion: String= "",
+    val cvv: String =  "",
+
     val paso: Int = 1,
     val isLoading: Boolean = false,
     val error: String? = null
@@ -45,7 +54,7 @@ class ParkingViewModel(
         _uiState.update { it.copy(zonaSeleccionada = nombre, spotSeleccionado = null) }
     }
 
-    fun SeleccionarSpot(spot: Spot){
+    fun seleccionarSpot(spot: Spot){
         _uiState.update { it.copy(spotSeleccionado = spot) }
     }
 
@@ -57,6 +66,62 @@ class ParkingViewModel(
         _uiState.update { it.copy(fechaFin = fecha) }
     }
 
+
+    fun actualizarNumeroTarjeta(v: String) {
+        _uiState.update{it.copy(numeroTarjeta = v)}
+
+    }
+
+    fun actualizarExpiracion(v: String) {
+        uiState.update { it.copy(expiracion = v) }
+    }
+    fun actualizarCvv(v: String) {
+        uiState.update { it.copy(cvv = v) }
+    }
+
+
+    fun crearRenta(id_usaurio: String?) {
+        val spot = uiState.value.spotSeleccionado ?: run {
+            _uiState.update { it.copy(error = "Selecciona un lugar") }
+            return
+        }
+
+        val inicio = uiState.value.fechaInicio ?: run {
+            _uiState.update { it.copy(error = "Selecciona la fecha de inicio") }
+            return
+        }
+        val fin = uiState.value.fechaFin
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            try {
+                val req = CrearRentaRequest(
+                    id_usuario = id_usaurio,
+                    id_spot = spot.id_spot.toString(),
+                    fecha_inicio = inicio,
+                    fecha_fin = fin,
+                    metodo_pago = "Tarjeta",
+                    observaciones = "Renta desde app móvil"
+                )
+                Log.d("rentaRequest", req.toString())
+
+                val resp = repo.crearRenta(req)
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        rentaCalculada = resp.calculoPago,
+                        totalDias = resp.data.total_dias,
+                        paso = 5
+                    )
+                }
+
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
+    }
     fun obtenerCalculoRenta() {
         val inicio = uiState.value.fechaInicio
         val fin = uiState.value.fechaFin
@@ -96,6 +161,12 @@ class ParkingViewModel(
         }
     }
 
+    fun ultimoDiaDelMes(fecha: String?): String {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val date = LocalDate.parse(fecha, formatter)
+        val ultimoDia = date.withDayOfMonth(date.lengthOfMonth())
+        return ultimoDia.format(formatter)
+    }
 
 
 

@@ -42,7 +42,10 @@ import org.utl.rvpark_movil.utils.components.HeroCarousel
 
 
 @Composable
-fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(
+    navController: NavHostController,
+    viewModel: HomeViewModel = viewModel()
+) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }

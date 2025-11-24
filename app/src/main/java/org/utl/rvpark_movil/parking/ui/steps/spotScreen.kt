@@ -46,7 +46,7 @@ fun spotScreen(
         SpotDropdown(
             spots = spots,
             seleccion = uiState.spotSeleccionado,
-            onSelect = { vm.SeleccionarSpot(it) }
+            onSelect = { vm.seleccionarSpot(it) }
         )
 
         Row(

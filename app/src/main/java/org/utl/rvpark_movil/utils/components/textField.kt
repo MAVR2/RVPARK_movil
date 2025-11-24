@@ -33,6 +33,8 @@ fun TextField(
     var passwordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(
+        modifier = modifier,
+        singleLine = true,
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, color = labelColor) },

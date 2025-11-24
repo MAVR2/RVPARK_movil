@@ -1,5 +1,7 @@
 package org.utl.rvpark_movil.parking.data.remote
 
+import org.utl.rvpark_movil.parking.data.model.CrearRentaRequest
+import org.utl.rvpark_movil.parking.data.model.CrearRentaResponse
 import org.utl.rvpark_movil.parking.data.model.RentaResponse
 import org.utl.rvpark_movil.parking.data.model.ZonasResponse
 import org.utl.rvpark_movil.parking.data.model.rentaCalRequest
@@ -25,4 +27,7 @@ interface ApiService{
 
     @POST("api/rentas/calcular")
     suspend fun calcularRenta(@Body fechas: rentaCalRequest): RentaResponse
+
+    @POST("api/rentas/")
+    suspend fun crearRenta(@Body body: CrearRentaRequest): CrearRentaResponse
 }

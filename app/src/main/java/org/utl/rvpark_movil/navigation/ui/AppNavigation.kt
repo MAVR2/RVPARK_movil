@@ -1,6 +1,8 @@
 package org.utl.rvpark_movil.navigation.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,6 +19,7 @@ import org.utl.rvpark_movil.parking.ui.ParkingScreen
 import org.utl.rvpark_movil.profile.ui.EditarPagoScreen
 import org.utl.rvpark_movil.profile.ui.EditarUserScreen
 import org.utl.rvpark_movil.profile.ui.ProfileScreen
+import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 
 @Composable
@@ -60,7 +63,9 @@ fun AppNavigation(startAtHome: Boolean = false) {
         }
 
         composable(Screen.NuevoContrato.route) {
-            ParkingScreen(nav= navController)
+            val context = LocalContext.current
+            val repoUSer = remember{ UserRepository(context) }
+            ParkingScreen(nav= navController, repoUser =repoUSer )
         }
 
         composable(Screen.ChatBot.route){

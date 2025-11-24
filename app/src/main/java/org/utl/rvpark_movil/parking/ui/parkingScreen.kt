@@ -1,35 +1,21 @@
 package org.utl.rvpark_movil.parking.ui
 
 import DialogError
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,32 +31,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import org.utl.rvpark_movil.R
-import org.utl.rvpark_movil.parking.ui.steps.fechasScreen
 import org.utl.rvpark_movil.parking.ui.steps.PagoScreen
+import org.utl.rvpark_movil.parking.ui.steps.fechasScreen
 import org.utl.rvpark_movil.parking.ui.steps.spotScreen
 import org.utl.rvpark_movil.parking.ui.steps.zonaScreen
 import org.utl.rvpark_movil.utils.components.DialogSuccess
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
-import org.utl.rvpark_movil.utils.components.PasoProgressBar
+import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParkingScreen(
     vm: ParkingViewModel = viewModel(),
-    nav: NavHostController
+    nav: NavHostController,
+    repoUser: UserRepository
 ) {
 
     val uiState by vm.uiState.collectAsState()
@@ -82,6 +66,10 @@ fun ParkingScreen(
     var mostrarerrorFechaFin by remember { mutableStateOf(false) }
 
     var cancelar by remember { mutableStateOf(false) }
+
+    var confirmar by remember { mutableStateOf(false) }
+
+    val usuario by repoUser.user2.collectAsState(initial = null)
 
 
 
@@ -96,7 +84,6 @@ fun ParkingScreen(
 
 
 
-    val paso by vm.uiState.collectAsState()
     val zonaSeleccionada = uiState.zonaSeleccionada
     val spotSeleccionado = uiState.spotSeleccionado
 
@@ -283,7 +270,10 @@ fun ParkingScreen(
                         minutos= minutos,
                         segundos= segundos,
                         uiState = uiState,
-                        vm = vm
+                        vm = vm,
+                        repoUser = repoUser,
+                        onCancelar = { cancelar = true},
+                        onPagar = {vm.crearRenta(usuario?.id)}
                     )
 
                 }
@@ -399,26 +389,6 @@ fun ParkingScreen(
         )
     }
 
-    if (cancelar) {
-        DialogSuccess(
-            titulo = "Esta seguro que desea cancelar?",
-            texto = "se cancelara el proceso de contrato del spot",
-            onCancel = {
-                cancelar = false
-            },
-            onConfirm = {
-                Log.d("debug","se cancelo y se fue a home")
-                spotSeleccionado?.let {
-                    vm.cancelarSpot(it.id_spot)
-                }
-                nav.navigate("home")
-                cancelar = false
-
-            },
-            icon = Icons.Default.Error
-        )
-    }
-
     if(mostrarDialogo){
         DialogSuccess(
             titulo = "Espera",
@@ -433,6 +403,17 @@ fun ParkingScreen(
                 mostrarDialogo = false
             }
         )
+    }
+    if(confirmar){
+        DialogSuccess(
+            onConfirm = {
+                vm.crearRenta(usuario?.id)
+            },
+            onCancel = {confirmar = false},
+            titulo = "Todos los datos son correctos?",
+            texto = "antes de continuar asegurate de que todos los datos son correctos",
+            icon = Icons.Default.Info,
+            )
     }
 }
 
