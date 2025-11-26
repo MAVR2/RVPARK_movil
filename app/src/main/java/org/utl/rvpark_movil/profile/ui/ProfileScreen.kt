@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -24,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -87,7 +90,6 @@ fun ProfileScreen(
 
 
 @Composable
-@Preview
 fun Profile(
     uiState: userUiState,
     modifier: Modifier = Modifier,
@@ -96,58 +98,97 @@ fun Profile(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(20.dp)
     ) {
+
         Text(
-            text = "Perfil del Usuario",
+            text = "Mi Perfil",
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(Modifier.height(24.dp))
 
-        Text(text = "Nombre del titular de la cuenta: ${uiState.name} ${uiState.lastName}")
-        Text(text = "Correo: ${uiState.email}")
-        Text(text = "Teléfono: ${uiState.phone}")
-        Text(text = "Tipo de cuenta: ${uiState.rol}")
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {navController.navigate("editarUser")},
-            modifier = Modifier.fillMaxWidth()
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(6.dp)
         ) {
-            Text("Editar usuario")
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(70.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                Text(
+                    text = "${uiState.name}",
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = uiState.email,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = uiState.phone,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Rol: ${uiState.rol}",
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
-        Text(
-            text = "Métodos de pago",
-            style = MaterialTheme.typography.titleMedium
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "• Tarjeta Visa terminación 1234")
-        Text(text = "• PayPal: usuario@mail.com")
+        Spacer(Modifier.height(24.dp))
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-
-
-        Spacer(modifier = Modifier.height(12.dp))
-
+        // Botón editar usuario
         Button(
-            onClick = {navController.navigate("editarPago")},
+            onClick = { navController.navigate("editarUser") },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Editar métodos de pago")
+            Text("Editar información")
         }
 
+        Spacer(Modifier.height(12.dp))
+
+        // Botón logout
         Button(
-            onClick = {navController.navigate("login") },
+            onClick = { navController.navigate("login") },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Cerrar session")
-            Spacer(modifier = Modifier.size(10.dp))
             Icon(Icons.Default.ExitToApp, contentDescription = "")
+            Spacer(Modifier.size(10.dp))
+            Text("Cerrar sesión")
         }
     }
 }

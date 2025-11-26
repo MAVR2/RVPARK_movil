@@ -4,42 +4,81 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import org.utl.rvpark_movil.utils.components.TextField
+import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 @Composable
 fun EditarUserScreen(
     navController: NavHostController,
     viewModel: ProfileViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var name by remember { mutableStateOf(uiState.name) }
-    var lastName by remember { mutableStateOf(uiState.lastName) }
-    var email by remember { mutableStateOf(uiState.email) }
-    var phone by remember { mutableStateOf(uiState.phone) }
+    val userRepository = UserRepository(context)
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Editar Usuario", style = MaterialTheme.typography.headlineMedium)
 
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(
+        modifier = Modifier
+            .padding(20.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Top
+    ) {
 
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") })
-        OutlinedTextField(value = lastName, onValueChange = { lastName = it }, label = { Text("Apellidos") })
-        OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Correo") })
-        OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Teléfono") })
+        Text(
+            text = "Editar usuario",
+            style = MaterialTheme.typography.headlineMedium
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        TextField(
+            value = uiState.name,
+            label = "Nombre",
+            onValueChange = { viewModel.updateName(it) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+
+
+        TextField(
+            value = uiState.email,
+            label = "Correo",
+            onValueChange = { viewModel.updateEmail(it) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = uiState.phone,
+            label = "Teléfono",
+            onValueChange = { viewModel.updatePhone(it) },
+            keyboardType = KeyboardType.Phone,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+
+
+        Spacer(modifier = Modifier.height(28.dp))
+
         Button(
             onClick = {
-                viewModel.updateName(name)
-                viewModel.updateLastName(lastName)
-                viewModel.updateEmail(email)
-                viewModel.updatePhone(phone)
+                viewModel.savePersona(
+                    userRepository =userRepository,
+                    onDone = {"Actualizado"}
+                )
+
                 navController.popBackStack()
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium
         ) {
             Text("Guardar cambios")
         }

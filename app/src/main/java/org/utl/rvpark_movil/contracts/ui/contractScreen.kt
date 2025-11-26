@@ -2,7 +2,6 @@ package org.utl.rvpark_movil.contracts.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
@@ -21,7 +20,6 @@ import org.utl.rvpark_movil.home.ui.HomeViewModel
 import org.utl.rvpark_movil.home.ui.homeUiState
 import org.utl.rvpark_movil.utils.Screen
 import org.utl.rvpark_movil.utils.components.ListaContratos
-import org.utl.rvpark_movil.utils.components.SearchBarContrato
 
 @Composable
 fun ContractScreen(
@@ -35,7 +33,6 @@ fun ContractScreen(
     )
 
     val uiState by viewModel.uiState.collectAsState()
-    val searchTextFieldState = remember { TextFieldState() }
 
     LaunchedEffect(Unit) {
         viewModel.loadContratos("3")
@@ -69,9 +66,6 @@ fun ContractScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
             uiState = uiState,
-            searchTextFieldState = searchTextFieldState,
-            onQueryChange = viewModel::updateSearchQuery,
-            onReloadContratos = { viewModel.loadContratos("3") },
             navController = navController
         )
     }
@@ -81,36 +75,71 @@ fun ContractScreen(
 fun ContractList(
     modifier: Modifier,
     uiState: homeUiState,
-    searchTextFieldState: TextFieldState,
-    navController: NavHostController,
-    onQueryChange: (String) -> Unit,
-    onReloadContratos: () -> Unit
+    navController: NavHostController
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf("Todos") }
+
+    // Filtrado de contratos
+    val filteredRentas = uiState.rentas.filter { renta ->
+        selectedFilter == "Todos" || renta.estatus_pago == selectedFilter
+    }
+
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Text(
-            text = "listado de contratos",
+            text = "Contratos",
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Button(onClick = { navController.navigate(Screen.NuevoContrato.route) }) {
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = { navController.navigate(Screen.NuevoContrato.route) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("Crear nuevo contrato")
         }
 
-        SearchBarContrato(
-            textFieldState = searchTextFieldState,
-            onSearch = onQueryChange,
-            searchResults = uiState.rentas,
-            navController = navController
-        )
+        Spacer(modifier = Modifier.height(20.dp))
 
-        if (searchTextFieldState.text.isEmpty()) {
-            ListaContratos(uiState.rentas, navController)
+        // Dropdown Filtro
+        Box {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { expanded = true }
+            ) {
+                Text("Filtro: $selectedFilter")
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                listOf("Todos", "Pagado", "Pendiente", "Cancelado").forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            selectedFilter = option
+                            expanded = false
+                        }
+                    )
+                }
+            }
         }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Lista filtrada
+        ListaContratos(
+            contratos = filteredRentas,
+            navController = navController,
+        )
     }
 }
