@@ -3,6 +3,7 @@ package org.utl.rvpark_movil.navigation.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -47,7 +48,7 @@ fun AppNavigation(startAtHome: Boolean = false) {
         }
 
         composable(Screen.Contratos.route){
-            ContractScreen(navController )
+            ContractScreen(navController)
         }
 
         composable(Screen.Profile.route) {
@@ -59,7 +60,10 @@ fun AppNavigation(startAtHome: Boolean = false) {
             arguments = listOf(navArgument("id") { type = NavType.IntType })
         ) { backStackEntry ->
             val contratoId = backStackEntry.arguments?.getInt("id") ?: 0
-            ContratoDetailScreen(contratoId)
+
+            ContratoDetailScreen(
+                id_renta = contratoId,
+            )
         }
 
         composable(Screen.NuevoContrato.route) {

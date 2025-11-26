@@ -36,8 +36,13 @@ data class RentaCompleta(
 data class Usuario(
     val id_usuario: Int,
     val nombre_usuario: String,
-    val email: String
+    val password_hash: String,
+    val rol: String,
+    val id_rv_park: Int?,
+    val id_Persona: Int?,
+    val activo: Boolean
 )
+
 
 
 data class Pago(

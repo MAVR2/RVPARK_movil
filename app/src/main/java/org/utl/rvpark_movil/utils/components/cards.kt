@@ -19,8 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.utl.rvpark_movil.home.data.Contrato
-import org.utl.rvpark_movil.home.data.hoy
+import org.utl.rvpark_movil.home.data.model.Renta
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
@@ -30,10 +29,10 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun ListaContratos(
-    contratos: List<Contrato>?,
+    rentas: List<Renta>?,
     navHostController: NavHostController
 ) {
-    if (contratos.isNullOrEmpty()) {
+    if (rentas.isNullOrEmpty()) {
         ElevatedCard(
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
             modifier = Modifier
@@ -54,9 +53,9 @@ fun ListaContratos(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp)
         ) {
-            contratos.forEach { contrato ->
+            rentas.forEach { contrato ->
                 ContratoCard(
-                    contrato = contrato,
+                    renta = contrato,
                     navController = navHostController
                     )
             }
@@ -66,14 +65,12 @@ fun ListaContratos(
 
 @Composable
 fun ContratoCard(
-    contrato: Contrato,
+    renta: Renta,
     navController: NavHostController
 ) {
-    val fechaInicio = LocalDate.parse(contrato.fecha_inicio)
-    val fechaFin = LocalDate.parse(contrato.fecha_fin)
+    val fechaInicio = LocalDate.parse(renta.fecha_inicio)
+    val fechaFin = LocalDate.parse(renta.fecha_fin)
     val diasTotales = ChronoUnit.DAYS.between(fechaInicio, fechaFin).toFloat()
-    val diasRestantes = max(ChronoUnit.DAYS.between(hoy, fechaFin).toFloat(), 0f)
-    val progreso = if (diasTotales > 0) 1f - (diasRestantes / diasTotales) else 1f
 
 
     ElevatedCard(
@@ -83,34 +80,22 @@ fun ContratoCard(
             .padding(8.dp)
             .wrapContentHeight()
             .clickable {
-                navController.navigate("contratoDetalle/${contrato.id_renta}")
+                navController.navigate("contratoDetalle/${renta.id_renta}")
             }
     ) {
         Box(modifier = Modifier.fillMaxWidth()){
             Spacer(Modifier.height(16.dp))
         }
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(text = "Contrato #${contrato.id_renta}")
-            Text(text = "Cliente: ${contrato.id_cliente}")
-            Text(text = "Inicio: ${contrato.fecha_inicio}")
-            Text(text = "Fin: ${contrato.fecha_fin}")
-            Text(text = "Monto: $${contrato.monto_total}")
-            Text(text = "Estatus: ${contrato.estatus_pago}")
+            Text(text = "Contrato #${renta.id_renta}")
+            Text(text = "Inicio: ${renta.fecha_inicio}")
+            Text(text = "Fin: ${renta.fecha_fin}")
+            Text(text = "Monto: $${renta.monto_total}")
+            Text(text = "Estatus: ${renta.estatus_pago}")
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            CircularProgressIndicator(
-                progress = { progreso.coerceIn(0f, 1f) },
-                modifier = Modifier
-                    .size(60.dp)
-                    .align(Alignment.CenterHorizontally),
-                color = MaterialTheme.colorScheme.primary
-            )
 
-            Text(
-                text = "Días restantes: ${diasRestantes.toInt()}",
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
         }
     }
 }

@@ -4,7 +4,7 @@ import org.utl.rvpark_movil.parking.data.model.CrearRentaRequest
 import org.utl.rvpark_movil.parking.data.model.rentaCalRequest
 import org.utl.rvpark_movil.parking.data.remote.ApiService
 import org.utl.rvpark_movil.utils.RetrofitClient
-import retrofit2.http.Body
+
 
 class ParkingRepository {
     private val api = RetrofitClient.createService(ApiService::class.java)

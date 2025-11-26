@@ -1,5 +1,7 @@
 package org.utl.rvpark_movil.home.ui
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.filled.Message
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,11 +52,12 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
-    val nombre by userRepository.nombre.collectAsState(initial = "")
+    val usuario by userRepository.user2.collectAsState(initial = null)
 
-    LaunchedEffect(nombre) {
-        viewModel.loadContratos(userRepository)
-        viewModel.setNombre(nombre ?: "")
+    LaunchedEffect(usuario) {
+        viewModel.loadContratos(usuario?.id)
+        val rentas = viewModel.loadContratos(usuario?.id)
+        Log.d("Rentas",rentas.toString())
     }
 
     Scaffold(
@@ -79,7 +83,7 @@ fun HomeScreen(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Hola $nombre!",
+                text = "Hola ${usuario?.name}!",
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -114,7 +118,7 @@ fun HomeScreen(
             Text("Contratos de renta", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
 
-            if(uiState.contratos.isEmpty()){
+            if(uiState.rentas.isEmpty()){
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Card(
                             shape = RoundedCornerShape(16.dp),
@@ -156,16 +160,62 @@ fun HomeScreen(
                         }
                     }
                 }else{
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    uiState.contratos.forEach { contrato ->
+                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    uiState.rentas.forEach { contrato ->
                         Card(
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.fillMaxWidth(),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(text= "${contrato.id_renta}", style = MaterialTheme.typography.titleMedium)
-                                Text("lugar del espacio: ${contrato.id_spot}%", style = MaterialTheme.typography.bodyMedium)
+                            Column(
+                                modifier = Modifier
+                                    .padding(18.dp)
+                                    .clickable(
+                                        onClick = {navController.navigate("contratoDetalle/${contrato.id_renta}")}
+                                    ),
+                            ) {
+
+                                Text(
+                                    text = "Espacio ${contrato.spot?.codigo_spot ?: contrato.id_spot}",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+
+                                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                                Row {
+                                    Text(
+                                        "Inicio: ",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                    contrato.fecha_inicio?.let {
+                                        Text(
+                                            it,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+
+                                Row {
+                                    Text(
+                                        "Fin: ",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                    Text(
+                                        contrato.fecha_fin ?: "En curso",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+
+                                Row {
+                                    Text(
+                                        "Total: ",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                    Text(
+                                        "$${contrato.monto_total}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                             }
                         }
                     }

@@ -1,146 +1,216 @@
 package org.utl.rvpark_movil.contracts.ui
 
-import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.os.Environment
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-import com.itextpdf.io.image.ImageDataFactory
-import com.itextpdf.kernel.pdf.PdfDocument
-import com.itextpdf.kernel.pdf.PdfWriter
-import com.itextpdf.layout.Document
-import com.itextpdf.layout.element.Paragraph
-import org.utl.rvpark_movil.home.data.Contrato
-import org.utl.rvpark_movil.home.ui.HomeViewModel
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import com.itextpdf.layout.element.Image as PdfImage
+import org.utl.rvpark_movil.parking.data.model.Pago
+import org.utl.rvpark_movil.utils.saveContratoPdf
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContratoDetailScreen(
     id_renta: Int,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: ContractViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val contrato = uiState.contratos.find { it.id_renta == id_renta } ?: Contrato(
-        id_renta = id_renta,
-        id_cliente = 999,
-        id_spot = 1,
-        fecha_inicio = "2025-10-01",
-        fecha_fin = "2025-10-10",
-        total_dias = 9,
-        monto_total = 1234.56,
-        estatus_pago = "Pagado",
-        metodo_pago = "Efectivo",
-        observaciones = "Contrato generado de forma temporal"
-    )
-
-    val qrData = "Contrato #${contrato.id_renta}\nTitular: Cliente ${contrato.id_cliente}"
-    val qrBitmap = remember { generateQrCode(qrData) }
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Contrato #${contrato.id_renta}", style = MaterialTheme.typography.titleLarge)
-            Text("Cliente: ${contrato.id_cliente}")
-            Text("Inicio: ${contrato.fecha_inicio}")
-            Text("Fin: ${contrato.fecha_fin}")
-            Text("Monto: $${contrato.monto_total}")
-            Text("Estatus: ${contrato.estatus_pago}")
-            Text("Método de pago: ${contrato.metodo_pago}")
-            Text("Observaciones: ${contrato.observaciones}")
 
-            Spacer(Modifier.height(20.dp))
+    LaunchedEffect(id_renta) {
+        viewModel.loadRenta(id_renta)
+    }
 
-            Image(
-                bitmap = qrBitmap.asImageBitmap(),
-                contentDescription = "Código QR del contrato",
-                modifier = Modifier.size(250.dp)
-            )
+    val renta = uiState.renta
 
-            Spacer(Modifier.height(20.dp))
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Detalle del contrato") })
+        }
+    ) { innerPadding ->
 
-            Button(onClick = { saveContratoPdf(context, contrato, qrBitmap) }) {
-                Text("Guardar PDF")
+        when {
+            uiState.loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            uiState.error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Error: ${uiState.error}")
+                }
+            }
+
+            renta != null -> {
+                val qrData = "Contrato: ${renta.id_renta}\nUsuario: ${renta.id_usuario}"
+                val qrBitmap = remember(renta.id_renta) { generateQrCode(qrData) }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(innerPadding)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.Top
+                ) {
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+
+                            Text(
+                                text = "Contrato #${renta.id_renta}",
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+
+                            Divider()
+
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                InfoRow("Email", renta.usuario?.nombre_usuario ?: "N/D")
+
+                                InfoRow("Spot", renta.spot?.codigo_spot ?: renta.id_spot.toString())
+                                InfoRow("Inicio", renta.fecha_inicio)
+                                InfoRow("Fin", renta.fecha_fin ?: "N/A")
+
+                                InfoRow("Total días", renta.total_dias?.toString() ?: "N/A")
+                                InfoRow("Monto total", "$${renta.monto_total}")
+
+                                InfoRow("Estatus pago", renta.estatus_pago)
+                                InfoRow("Método de pago", renta.metodo_pago)
+
+                                InfoRow("Observaciones", renta.observaciones ?: "N/A")
+                            }
+
+                            // PAGOS
+                            if (!renta.pagos.isNullOrEmpty()) {
+                                Divider()
+                                Text(
+                                    "Pagos",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    renta.pagos.forEach { pago ->
+                                        PaymentCard(pago)
+                                    }
+                                }
+                            }
+
+                            // QR
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 10.dp)
+                            ) {
+                                Text("Código QR", style = MaterialTheme.typography.titleMedium)
+
+                                Spacer(Modifier.height(10.dp))
+
+                                Card(
+                                    elevation = CardDefaults.cardElevation(2.dp)
+                                ) {
+                                    Image(
+                                        bitmap = qrBitmap.asImageBitmap(),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .padding(20.dp)
+                                            .size(220.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(55.dp),
+                        onClick = { saveContratoPdf(context, renta, qrBitmap) }
+                    ) {
+                        Text("Guardar PDF")
+                    }
+                }
             }
         }
     }
 }
 
-fun generateQrCode(data: String): Bitmap {
-    val writer = QRCodeWriter()
-    val bitMatrix = writer.encode(data, BarcodeFormat.QR_CODE, 512, 512)
-    val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
-    for (x in 0 until 512) {
-        for (y in 0 until 512) {
-            bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+@Composable
+fun InfoRow(label: String, value: String?) {
+    Column {
+        Text(label, style = MaterialTheme.typography.labelMedium)
+        Text(value ?: "N/A", style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+fun PaymentCard(pago: Pago) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(15.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            InfoRow("Fecha pago", pago.fecha_pago)
+            InfoRow("Monto", "$${pago.monto}")
+            InfoRow("Periodo", pago.periodo)
+            InfoRow("Método", pago.metodo_pago)
+            InfoRow("Referencia", pago.referencia)
         }
     }
-    return bitmap
 }
 
-fun saveContratoPdf(context: Context, contrato: Contrato, qrBitmap: Bitmap) {
-    val file = File(
-        context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-        "Contrato_${contrato.id_renta}.pdf"
-    )
 
-    val pdfWriter = PdfWriter(FileOutputStream(file))
-    val pdfDoc = PdfDocument(pdfWriter)
-    val document = Document(pdfDoc)
 
-    document.add(Paragraph("Contrato #${contrato.id_renta}"))
-    document.add(Paragraph("Cliente: ${contrato.id_cliente}"))
-    document.add(Paragraph("Inicio: ${contrato.fecha_inicio}"))
-    document.add(Paragraph("Fin: ${contrato.fecha_fin}"))
-    document.add(Paragraph("Monto: $${contrato.monto_total}"))
-    document.add(Paragraph("Estatus: ${contrato.estatus_pago}"))
-    document.add(Paragraph("Método de pago: ${contrato.metodo_pago}"))
-    document.add(Paragraph("Observaciones: ${contrato.observaciones}"))
 
-    val stream = ByteArrayOutputStream()
-    qrBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-    val imageData = ImageDataFactory.create(stream.toByteArray())
-    val image = PdfImage(imageData)
-    image.scaleToFit(200f, 200f)
-    document.add(image)
-
-    document.close()
-
-    val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-    val intent = Intent(Intent.ACTION_VIEW)
-    intent.setDataAndType(uri, "application/pdf")
-    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    context.startActivity(intent)
+fun generateQrCode(data: String): Bitmap {
+    val writer = QRCodeWriter()
+    val matrix = writer.encode(data, BarcodeFormat.QR_CODE, 512, 512)
+    val bmp = createBitmap(512, 512, Bitmap.Config.RGB_565)
+    for (x in 0 until 512) {
+        for (y in 0 until 512) {
+            bmp[x, y] = if (matrix[x, y]) Color.BLACK else Color.WHITE
+        }
+    }
+    return bmp
 }
+
+
