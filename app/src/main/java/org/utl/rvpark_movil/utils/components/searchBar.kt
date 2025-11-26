@@ -22,14 +22,14 @@ import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import org.utl.rvpark_movil.home.data.Contrato
+import org.utl.rvpark_movil.home.data.model.Renta
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBarContrato(
     textFieldState: TextFieldState,
     onSearch: (String) -> Unit,
-    searchResults: List<Contrato>,
+    searchResults: List<Renta>,
     modifier: Modifier = Modifier,
     navController: NavHostController
 ) {
@@ -69,7 +69,7 @@ fun SearchBarContrato(
                     val displayText = "Contrato #${contrato.id_renta}"
                     ListItem(
                         headlineContent = { Text(displayText) },
-                        trailingContent = { Text(contrato.fecha_inicio) },
+                        trailingContent = { com.itextpdf.layout.element.Text(contrato.fecha_inicio) },
                         modifier = Modifier
                             .clickable {
                                 navController.navigate("contratoDetalle/${contrato.id_renta}")

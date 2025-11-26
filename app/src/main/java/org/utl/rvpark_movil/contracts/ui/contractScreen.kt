@@ -1,8 +1,6 @@
 package org.utl.rvpark_movil.contracts.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
@@ -10,21 +8,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,32 +22,23 @@ import org.utl.rvpark_movil.home.ui.homeUiState
 import org.utl.rvpark_movil.utils.Screen
 import org.utl.rvpark_movil.utils.components.ListaContratos
 import org.utl.rvpark_movil.utils.components.SearchBarContrato
-import org.utl.rvpark_movil.utils.preferences.UserRepository
-
 
 @Composable
 fun ContractScreen(
     navController: NavHostController,
     viewModel: HomeViewModel = viewModel()
-
-
 ) {
     val items = listOf(
         Screen.Home to Icons.Default.Home,
         Screen.Contratos to Icons.Default.Description,
         Screen.Profile to Icons.Default.Person
-
     )
 
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    val userRepository = remember { UserRepository(context) }
-
     val searchTextFieldState = remember { TextFieldState() }
 
-
     LaunchedEffect(Unit) {
-        viewModel.loadContratos(userRepository)
+        viewModel.loadContratos("3")
     }
 
     Scaffold(
@@ -85,8 +63,7 @@ fun ContractScreen(
                 }
             }
         }
-    )
-    { innerPadding ->
+    ) { innerPadding ->
         ContractList(
             modifier = Modifier
                 .fillMaxSize()
@@ -94,50 +71,46 @@ fun ContractScreen(
             uiState = uiState,
             searchTextFieldState = searchTextFieldState,
             onQueryChange = viewModel::updateSearchQuery,
-            navController = navController,
-            onReloadContratos = { viewModel.loadContratos(userRepository) })
+            onReloadContratos = { viewModel.loadContratos("3") },
+            navController = navController
+        )
     }
 }
-
-
 
 @Composable
 fun ContractList(
     modifier: Modifier,
     uiState: homeUiState,
-    onReloadContratos: () -> Unit,
     searchTextFieldState: TextFieldState,
+    navController: NavHostController,
     onQueryChange: (String) -> Unit,
-    navController: NavHostController
+    onReloadContratos: () -> Unit
 ) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            textAlign = TextAlign.Center,
             text = "listado de contratos",
-            modifier = Modifier.padding(top = 8.dp),
-            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineMedium
         )
 
-        Button(
-            onClick = ({navController.navigate(Screen.NuevoContrato.route)})
-        ) {
+        Button(onClick = { navController.navigate(Screen.NuevoContrato.route) }) {
             Text("Crear nuevo contrato")
         }
 
         SearchBarContrato(
             textFieldState = searchTextFieldState,
             onSearch = onQueryChange,
-            searchResults = uiState.contratos.orEmpty(),
+            searchResults = uiState.rentas,
             navController = navController
         )
 
-        if(searchTextFieldState.text.isEmpty()){
-            ListaContratos(uiState.contratos.orEmpty(),navController)
+        if (searchTextFieldState.text.isEmpty()) {
+            ListaContratos(uiState.rentas, navController)
         }
-
-
     }
 }

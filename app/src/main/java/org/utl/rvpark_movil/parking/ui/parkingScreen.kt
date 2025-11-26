@@ -6,21 +6,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,60 +33,64 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import org.utl.rvpark_movil.R
+import org.utl.rvpark_movil.parking.ui.steps.PagoScreen
+import org.utl.rvpark_movil.parking.ui.steps.fechasScreen
+import org.utl.rvpark_movil.parking.ui.steps.spotScreen
+import org.utl.rvpark_movil.parking.ui.steps.zonaScreen
 import org.utl.rvpark_movil.utils.components.DialogSuccess
-import org.utl.rvpark_movil.utils.components.SpotDropdown
-import org.utl.rvpark_movil.utils.components.ZonaDropdown
 import java.text.SimpleDateFormat
-import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
+import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParkingScreen(
     vm: ParkingViewModel = viewModel(),
-    nav: NavHostController
+    nav: NavHostController,
+    repoUser: UserRepository
 ) {
 
-    val zonasUi by vm.zonasUi.collectAsState()
-    val zonas by vm.zonas.collectAsState()
+    val uiState by vm.uiState.collectAsState()
 
     var mostrarFechaInicio by remember { mutableStateOf(false) }
     var mostrarFechaFin by remember { mutableStateOf(false) }
 
-    val stateInicio = rememberDatePickerState()
-    val stateFin = rememberDatePickerState()
+    var mostrarErrorFecha by remember { mutableStateOf(false) }
+    var mostrarerrorFechaFin by remember { mutableStateOf(false) }
 
-    val paso by vm.paso.collectAsState()
-    val zonaSeleccionada by vm.zonaSeleccionada.collectAsState()
-    val spotSeleccionado by vm.spotSeleccionado.collectAsState()
+    var cancelar by remember { mutableStateOf(false) }
+
+    var confirmar by remember { mutableStateOf(false) }
+
+    val usuario by repoUser.user2.collectAsState(initial = null)
+
+
+
+    var tiempo by remember { mutableStateOf(300) }
+    var noTiempo by remember { mutableStateOf(false) }
+
+    var stateInicio = rememberDatePickerState()
+
+    var stateFin = rememberDatePickerState(
+        initialSelectedDateMillis = null
+    )
+
+
+
+    val zonaSeleccionada = uiState.zonaSeleccionada
+    val spotSeleccionado = uiState.spotSeleccionado
+
 
     var mostrarDialogo by remember { mutableStateOf(false) }
 
 
-    val mapaRes = when (zonaSeleccionada) {
-        "A" -> R.drawable.mapa_a
-        "B" -> R.drawable.mapa_b
-        "C" -> R.drawable.mapa_c
-        "D" -> R.drawable.mapa_a
-        "F" -> R.drawable.mapa_b
-        "G" -> R.drawable.mapa_c
-        "H" -> R.drawable.mapa_c
-        "I" -> R.drawable.mapa_a
-        "J" -> R.drawable.mapa_b
-        "K" -> R.drawable.mapa_c
-        "L" -> R.drawable.mapa_a
-        "M" -> R.drawable.mapa_b
-        "N" -> R.drawable.mapa_c
-        "O" -> R.drawable.mapa_o
-        else -> null
-    }
 
     LaunchedEffect(Unit) { vm.cargarZonas() }
 
@@ -103,7 +102,7 @@ fun ParkingScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        when (paso) {
+        when (uiState.paso) {
             1 -> {
                 Image(
                     painter = painterResource(R.drawable.mapa_completo),
@@ -141,6 +140,27 @@ fun ParkingScreen(
                     )
                 }
             }
+            3  ->{
+                LaunchedEffect(Unit) {
+                    while (tiempo > 0) {
+                        delay(1000)
+                        tiempo--
+                    }
+                    noTiempo = true
+                }
+            }
+            4 -> {
+                LaunchedEffect(Unit) {
+                    while (tiempo > 0) {
+                        delay(1000)
+                        tiempo--
+                    }
+                    noTiempo = true
+                }
+                LaunchedEffect(Unit) {
+                    vm.obtenerCalculoRenta()
+                }
+            }
 
         }
 
@@ -151,226 +171,183 @@ fun ParkingScreen(
                 .background(Color.White, shape = MaterialTheme.shapes.medium)
                 .padding(24.dp)
         ) {
-            when (paso) {
+            when (uiState.paso) {
 
-                1 -> Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    PasoProgressBar(paso)
-
-                    Text(
-                        "Selecciona una zona",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 20.dp)
-                    )
-
-                    ZonaDropdown(
-                        zonas = zonasUi,
-                        seleccion = zonasUi.firstOrNull() { it.nombre == zonaSeleccionada },
-                        onSelect = { zona ->
-                            vm.zonaSeleccionada.value = zona.nombre
+                1 ->{
+                    zonaScreen(
+                        paso = uiState.paso,
+                        uiState = uiState,
+                        vm = vm,
+                        onCancelar = {
+                            cancelar = true
                         }
                     )
-
-                    Row(
-                        modifier = Modifier.padding(top = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-
-                        Button(
-                            onClick = { nav.navigate("home") },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Red
-                            )
-
-                        )
-                        {
-                            Text("Cancelar")
-                        }
-
-                        Button(
-                            onClick = { if (zonaSeleccionada != null) vm.siguientePaso() },
-                            enabled = zonaSeleccionada != null
-                        ) { Text("Siguiente") }
-                    }
-
-
                 }
 
-                2 -> Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    PasoProgressBar(paso)
-
-
-                    Text(
-                        "Selecciona un spot",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 20.dp)
-                    )
-
-                    val spots = zonas[zonaSeleccionada] ?: emptyList()
-
-                    SpotDropdown(
-                        spots = spots,
-                        seleccion = spotSeleccionado,
-                        onSelect = { vm.spotSeleccionado.value = it }
-                    )
-
-                    Row(
-                        modifier = Modifier.padding(top = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-
-                        Button(onClick = {
+                2 ->{
+                    spotScreen(
+                        paso = uiState.paso,
+                        uiState = uiState,
+                        vm = vm,
+                        onAtras = {
                             vm.retrocederPaso()
-                            vm.spotSeleccionado.value = null
-                        }) {
-                            Text("Atrás")
-                        }
-
-                        Button(
-                            onClick = {
+                        },
+                        onSiguiente = {
+                            mostrarDialogo = true
+                            if (uiState.spotSeleccionado != null) {
                                 mostrarDialogo = true
-                                if (spotSeleccionado != null) {
-                                    mostrarDialogo = true
-                                }
-                            },
-                            enabled = spotSeleccionado != null
-                        ) { Text("Siguiente") }
-                    }
-
+                            }
+                            uiState.spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+                        }
+                    )
                 }
 
                 3 -> {
+                    if (noTiempo) {
+                        mostrarDialogo = false
+                        mostrarErrorFecha = false
+                        mostrarerrorFechaFin = false
+                        mostrarFechaInicio = false
+                        mostrarFechaFin = false
+                        DialogError(
+                            onDismiss = {
+                                nav.navigate("home")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+                            },
+                            onConfirm = {
+                                nav.navigate("home")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
 
-                    if (paso == 3) {
-
-                        // Cronómetro 5 min (300s)
-                        var tiempo by remember { mutableStateOf(300) }
-
-                        LaunchedEffect(Unit) {
-                            while (tiempo > 0) {
-                                delay(1000)
-                                tiempo--
-                            }
-                        }
-
-                        val minutos = tiempo / 60
-                        val segundos = tiempo % 60
-
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-
-                            PasoProgressBar(paso)
-
-                            Card(
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                ),
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            ) {
-                                Text(
-                                    text = String.format("%02d:%02d", minutos, segundos),
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    modifier = Modifier.padding(16.dp),
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-
-                            Text(
-                                "Confirme la informacion",
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier.padding(bottom = 20.dp)
-                            )
-
-                            Text("Zona: $zonaSeleccionada")
-                            Text("Spot: ${spotSeleccionado?.codigo_spot}")
-
-                            // Mostrar fechas seleccionadas
-                            Text(
-                                "Inicio: " + (stateInicio.selectedDateMillis?.let {
-                                    Instant.ofEpochMilli(it)
-                                        .atZone(ZoneId.systemDefault())
-                                        .toLocalDate()
-                                } ?: "No seleccionada"),
-                                modifier = Modifier.padding(top = 10.dp)
-                            )
-
-                            Text(
-                                "Fin: " + (stateFin.selectedDateMillis?.let {
-                                    Instant.ofEpochMilli(it)
-                                        .atZone(ZoneId.systemDefault())
-                                        .toLocalDate()
-                                } ?: "No seleccionada"),
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-
-                                Button(onClick = { mostrarFechaInicio = true }) {
-                                    Text("Fecha inicio")
-                                }
-
-                                Button(onClick = { mostrarFechaFin = true }) {
-                                    Text("Fecha fin")
-                                }
-                            }
-
-
-
-                            Row(
-                                modifier = Modifier.padding(top = 20.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-
-                                Button(onClick = { vm.retrocederPaso() }) {
-                                    Text("Atrás")
-                                }
-
-                                Button(onClick = { /* Pago */ }) {
-                                    Text("Pagar")
-                                }
-                            }
-                        }
+                            },
+                            titulo = "Se terminó el tiempo para solicitar el spot",
+                            texto = "Por favor vuelve a intentarlo.",
+                            icon = Icons.Default.Error
+                        )
                     }
+
+                    val minutos = tiempo / 60
+                    val segundos = tiempo % 60
+
+                    fechasScreen(
+                        minutos = minutos,
+                        segundos = segundos,
+                        uiState = uiState,
+                        vm = vm,
+                        stateInicio = stateInicio,
+                        stateFin = stateFin,
+                        onMostrarFechaInicio = { mostrarFechaInicio = true },
+                        onMostrarFechaFin = {mostrarFechaFin = true},
+                        onCancelar = {cancelar = true}
+                    )
+                }
+                4 ->{
+                    if (noTiempo) {
+                        mostrarDialogo = false
+                        mostrarErrorFecha = false
+                        mostrarerrorFechaFin = false
+                        mostrarFechaInicio = false
+                        mostrarFechaFin = false
+                        DialogError(
+                            onDismiss = {
+                                nav.navigate("home")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+                            },
+                            onConfirm = {
+                                nav.navigate("home")
+                                spotSeleccionado?.let { vm.apartarSpot(it.id_spot) }
+
+                            },
+                            titulo = "Se terminó el tiempo para solicitar el spot",
+                            texto = "Por favor vuelve a intentarlo.",
+                            icon = Icons.Default.Error
+                        )
+                    }
+
+                    val minutos = tiempo / 60
+                    val segundos = tiempo % 60
+
+                    PagoScreen(
+                        minutos= minutos,
+                        segundos= segundos,
+                        uiState = uiState,
+                        vm = vm,
+                        repoUser = repoUser,
+                        onCancelar = { cancelar = true},
+                        onPagar = {vm.crearRenta(usuario?.id)}
+                    )
+
                 }
             }
         }
     }
 
-    // DIÁLOGO FECHA INICIO
-    if (mostrarFechaInicio) {
-        DatePickerDialog(
-            onDismissRequest = { mostrarFechaInicio = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    mostrarFechaInicio = false
-                    vm.fechaInicio.value = stateInicio.selectedDateMillis?.let { millisToMysqlDate(it) }
-                }) {
-                    Text("OK")
-                }
-            }
-        ) {
-            DatePicker(state = stateInicio)
-        }
-    }
+   if(mostrarFechaInicio){
+       DatePickerDialog(
+           onDismissRequest = {
+               vm.seleccionarFechaInicio(null)
+               mostrarFechaInicio = false
+           },
+           confirmButton = {
+               TextButton(onClick = {
+                   val selected = stateInicio.selectedDateMillis
+                   val today = startOfTodayMillis()
 
-// DIÁLOGO FECHA FIN
+                   if(selected == null)
+                   {
+                       mostrarFechaInicio = false
+                       mostrarErrorFecha = true
+
+                   }else if(selected < today){
+
+                       mostrarFechaInicio = false
+                       mostrarErrorFecha = true
+
+                   }else {
+                       mostrarFechaInicio = false
+                       mostrarErrorFecha = false
+                       vm.seleccionarFechaInicio(millisToMysqlDate(selected))
+                   }
+               }) {
+                   Text(text = "ok" )
+               }
+           }
+       ) {
+           DatePicker(state = stateInicio)
+       }
+   }
+
     if (mostrarFechaFin) {
         DatePickerDialog(
-            onDismissRequest = { mostrarFechaFin = false },
+            onDismissRequest = {
+                vm.seleccionarFechaFin(null)
+                mostrarFechaFin = false
+                stateFin.selectedDateMillis = null
+
+            },
             confirmButton = {
                 TextButton(onClick = {
-                    mostrarFechaFin = false
-                    vm.fechaFin.value = stateFin.selectedDateMillis?.let { millisToMysqlDate(it) }
+                    val selected = stateFin.selectedDateMillis
+                    val today = startOfTodayMillis()
+                    val inicioSelected = stateInicio.selectedDateMillis
+                    when {
+                        selected == null -> {
+                            mostrarFechaFin = false
+                            mostrarerrorFechaFin = true
+                        }
+                        selected < today -> {
+                            mostrarFechaFin = false
+                            mostrarerrorFechaFin = true
+                        }
+                        inicioSelected != null && selected < inicioSelected -> {
+                            mostrarerrorFechaFin = true
+                            mostrarerrorFechaFin = false
+                        }
+                        else -> {
+                            mostrarFechaFin = false
+                            mostrarerrorFechaFin = false
+                            vm.seleccionarFechaFin(millisToMysqlDate(selected))
+                        }
+                    }
                 }) {
                     Text("OK")
                 }
@@ -380,8 +357,37 @@ fun ParkingScreen(
         }
     }
 
+    if (mostrarErrorFecha) {
+        DialogError(
+            titulo = "Fecha inválida",
+            texto = "La fecha de inicio no puede ser anterior a hoy.",
+            onDismiss = {
+                mostrarErrorFecha = false
+                mostrarFechaInicio = true
+                        },
+            onConfirm = {
+                mostrarErrorFecha = false
+                mostrarFechaInicio = true
+            },
+            icon = Icons.Default.Error
+        )
+    }
 
-
+    if (mostrarerrorFechaFin) {
+        DialogError(
+            titulo = "Fecha inválida",
+            texto = "La fecha de fin no puede ser anterior a hoy.",
+            onDismiss = {
+                mostrarErrorFecha = false
+                mostrarFechaFin = true
+                        },
+            onConfirm = {
+                mostrarErrorFecha = false
+                mostrarFechaFin = true
+                        },
+            icon = Icons.Default.Error
+        )
+    }
 
     if(mostrarDialogo){
         DialogSuccess(
@@ -398,44 +404,26 @@ fun ParkingScreen(
             }
         )
     }
+    if(confirmar){
+        DialogSuccess(
+            onConfirm = {
+                vm.crearRenta(usuario?.id)
+            },
+            onCancel = {confirmar = false},
+            titulo = "Todos los datos son correctos?",
+            texto = "antes de continuar asegurate de que todos los datos son correctos",
+            icon = Icons.Default.Info,
+            )
+    }
 }
 
 fun millisToMysqlDate(millis: Long): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     return formatter.format(Date(millis))
 }
-
-@Composable
-fun PasoProgressBar(paso: Int) {
-    val progreso = paso / 3f
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 20.dp)
-    ) {
-        Text(
-            text = "Paso $paso de 3",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
-
-        LinearProgressIndicator(
-            progress = progreso,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp)
-        )
-    }
+fun startOfTodayMillis(): Long {
+    return LocalDate.now()
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
 }
-
-
-
-
-
-
-
-
-
-
-
