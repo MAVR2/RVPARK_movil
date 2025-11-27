@@ -22,19 +22,19 @@ class UserRepository(private val context: Context) {
     }
 
     suspend fun saveUser(
-        id_usuario: String,
-        nombre_usuario: String,
-        nombre: String,
-        telefono: String,
-        rol: String,
-        id_rv_park: String,
-        token: String
+        id: String,
+        email: String,
+        name: String,
+        phone: String,
+        rol: String ,
+        id_rv_park: String = "",
+        token: String = ""
     ) {
         dataStore.edit { prefs ->
-            prefs[USER_ID] = id_usuario
-            prefs[USER_EMAIL] = nombre_usuario
-            prefs[NOMBRE] = nombre
-            prefs[TELEFONO] = telefono
+            prefs[USER_ID] = id
+            prefs[USER_EMAIL] = email
+            prefs[NOMBRE] = name
+            prefs[TELEFONO] = phone
             prefs[ROL] = rol
             prefs[ID_RVPARK] = id_rv_park
             prefs[TOKEN] = token

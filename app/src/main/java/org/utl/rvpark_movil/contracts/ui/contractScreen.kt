@@ -2,7 +2,6 @@ package org.utl.rvpark_movil.contracts.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
@@ -12,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -19,9 +19,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.utl.rvpark_movil.home.ui.HomeViewModel
 import org.utl.rvpark_movil.home.ui.homeUiState
+import org.utl.rvpark_movil.profile.ui.userUiState
 import org.utl.rvpark_movil.utils.Screen
 import org.utl.rvpark_movil.utils.components.ListaContratos
-import org.utl.rvpark_movil.utils.components.SearchBarContrato
+import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 @Composable
 fun ContractScreen(
@@ -34,11 +35,16 @@ fun ContractScreen(
         Screen.Profile to Icons.Default.Person
     )
 
-    val uiState by viewModel.uiState.collectAsState()
-    val searchTextFieldState = remember { TextFieldState() }
+    val context = LocalContext.current
+    val userRepo = remember { UserRepository(context) }
 
-    LaunchedEffect(Unit) {
-        viewModel.loadContratos("3")
+    val uiState by viewModel.uiState.collectAsState()
+    val usuario by userRepo.user2.collectAsState(userUiState())
+
+    LaunchedEffect(usuario.id) {
+        if (usuario.id.isNotEmpty()) {
+            viewModel.loadContratos(usuario.id)
+        }
     }
 
     Scaffold(
@@ -69,9 +75,6 @@ fun ContractScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
             uiState = uiState,
-            searchTextFieldState = searchTextFieldState,
-            onQueryChange = viewModel::updateSearchQuery,
-            onReloadContratos = { viewModel.loadContratos("3") },
             navController = navController
         )
     }
@@ -81,11 +84,15 @@ fun ContractScreen(
 fun ContractList(
     modifier: Modifier,
     uiState: homeUiState,
-    searchTextFieldState: TextFieldState,
-    navController: NavHostController,
-    onQueryChange: (String) -> Unit,
-    onReloadContratos: () -> Unit
+    navController: NavHostController
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf("Todos") }
+
+    val filteredRentas = uiState.rentas.filter { renta ->
+        selectedFilter == "Todos" || renta.estatus_pago == selectedFilter
+    }
+
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -93,24 +100,52 @@ fun ContractList(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "listado de contratos",
+            text = "Contratos",
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Button(onClick = { navController.navigate(Screen.NuevoContrato.route) }) {
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = { navController.navigate(Screen.NuevoContrato.route) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("Crear nuevo contrato")
         }
 
-        SearchBarContrato(
-            textFieldState = searchTextFieldState,
-            onSearch = onQueryChange,
-            searchResults = uiState.rentas,
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Box {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { expanded = true }
+            ) {
+                Text("Filtro: $selectedFilter")
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                listOf("Todos", "Pagado", "Pendiente", "Cancelado").forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            selectedFilter = option
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        ListaContratos(
+            contratos = filteredRentas,
             navController = navController
         )
-
-        if (searchTextFieldState.text.isEmpty()) {
-            ListaContratos(uiState.rentas, navController)
-        }
     }
 }
+

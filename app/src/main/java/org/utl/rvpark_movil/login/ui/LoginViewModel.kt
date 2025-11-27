@@ -57,12 +57,12 @@ class LoginViewModel : ViewModel() {
                 // Login demo
                 if (email == "admin" && password == "admin") {
                     userRepository.saveUser(
-                        id_usuario = "1",
-                        nombre_usuario = "admin",
-                        nombre = "demo",
+                        id = "1",
+                        email = "admin",
+                        name = "demo",
                         id_rv_park = "1",
                         token = "demo",
-                        telefono = "telefono demo",
+                        phone = "telefono demo",
                         rol = "demo"
                     )
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
@@ -78,12 +78,12 @@ class LoginViewModel : ViewModel() {
                     val data = response.data
 
                     userRepository.saveUser(
-                        id_usuario = data.id_usuario.toString(),
-                        nombre_usuario = data.nombre_usuario,
-                        nombre = data.nombre,
+                        id = data.id_usuario.toString(),
+                        email = data.nombre_usuario,
+                        name = data.nombre,
                         id_rv_park = data.id_rv_park.toString(),
                         token = data.token,
-                        telefono = data.telefono,
+                        phone = data.telefono,
                         rol = data.rol
                     )
 

@@ -61,7 +61,7 @@ fun HeroCarousel(
         val item = items[i]
         Image(
             modifier = Modifier
-                .height(205.dp).clickable(true, onClick = {navHostController.navigate("Eventos")})
+                .height(205.dp).clickable(true, onClick = {navHostController.navigate("home")})
                 .maskClip(MaterialTheme.shapes.large),
             painter = painterResource(id = item.imageResId),
             contentDescription = item.contentDescription,

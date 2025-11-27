@@ -13,6 +13,5 @@ sealed class Screen(val route: String){
 
     object EditarUser: Screen("editarUser")
 
-    object EditarPago: Screen("editarPago")
 
 }

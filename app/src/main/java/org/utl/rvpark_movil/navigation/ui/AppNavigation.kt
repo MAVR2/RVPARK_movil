@@ -17,7 +17,6 @@ import androidx.navigation.navArgument
 import org.utl.rvpark_movil.chat.ui.ChatScreen
 import org.utl.rvpark_movil.contracts.ui.ContratoDetailScreen
 import org.utl.rvpark_movil.parking.ui.ParkingScreen
-import org.utl.rvpark_movil.profile.ui.EditarPagoScreen
 import org.utl.rvpark_movil.profile.ui.EditarUserScreen
 import org.utl.rvpark_movil.profile.ui.ProfileScreen
 import org.utl.rvpark_movil.utils.preferences.UserRepository
@@ -80,10 +79,6 @@ fun AppNavigation(startAtHome: Boolean = false) {
             EditarUserScreen(navController = navController)
         }
 
-        composable((Screen.EditarPago.route)){
-            EditarPagoScreen(navController = navController)
-        }
-
-
     }
+
 }
