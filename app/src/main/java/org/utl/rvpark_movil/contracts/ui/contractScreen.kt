@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,8 +19,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.utl.rvpark_movil.home.ui.HomeViewModel
 import org.utl.rvpark_movil.home.ui.homeUiState
+import org.utl.rvpark_movil.profile.ui.userUiState
 import org.utl.rvpark_movil.utils.Screen
 import org.utl.rvpark_movil.utils.components.ListaContratos
+import org.utl.rvpark_movil.utils.preferences.UserRepository
 
 @Composable
 fun ContractScreen(
@@ -32,10 +35,16 @@ fun ContractScreen(
         Screen.Profile to Icons.Default.Person
     )
 
-    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val userRepo = remember { UserRepository(context) }
 
-    LaunchedEffect(Unit) {
-        viewModel.loadContratos("3")
+    val uiState by viewModel.uiState.collectAsState()
+    val usuario by userRepo.user2.collectAsState(userUiState())
+
+    LaunchedEffect(usuario.id) {
+        if (usuario.id.isNotEmpty()) {
+            viewModel.loadContratos(usuario.id)
+        }
     }
 
     Scaffold(
@@ -80,7 +89,6 @@ fun ContractList(
     var expanded by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("Todos") }
 
-    // Filtrado de contratos
     val filteredRentas = uiState.rentas.filter { renta ->
         selectedFilter == "Todos" || renta.estatus_pago == selectedFilter
     }
@@ -91,7 +99,6 @@ fun ContractList(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Text(
             text = "Contratos",
             textAlign = TextAlign.Center,
@@ -109,7 +116,6 @@ fun ContractList(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Dropdown Filtro
         Box {
             OutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
@@ -136,10 +142,10 @@ fun ContractList(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Lista filtrada
         ListaContratos(
             contratos = filteredRentas,
-            navController = navController,
+            navController = navController
         )
     }
 }
+

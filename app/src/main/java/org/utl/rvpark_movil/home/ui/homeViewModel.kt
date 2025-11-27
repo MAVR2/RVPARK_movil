@@ -49,6 +49,8 @@ class HomeViewModel(
     }
 
     fun loadContratos(id: String?) {
+        if (id.isNullOrBlank()) return
+
         viewModelScope.launch {
             _isLoading.value = true
             try {

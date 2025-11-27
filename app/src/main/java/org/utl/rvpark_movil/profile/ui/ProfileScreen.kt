@@ -160,12 +160,7 @@ fun Profile(
 
                 Spacer(Modifier.height(8.dp))
 
-                Text(
-                    text = "Rol: ${uiState.rol}",
-                    style = MaterialTheme.typography.labelLarge,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
+
             }
         }
 

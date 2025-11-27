@@ -52,6 +52,7 @@ class ProfileViewModel(
 
     fun savePersona(
         userRepository: UserRepository,
+        lastName: String,
         onDone: () -> Unit
     ) {
         viewModelScope.launch {
@@ -60,30 +61,32 @@ class ProfileViewModel(
 
                 val currentUser = userRepository.user2.first()
 
+                val nombreCompleto = "${uiState.value.name} $lastName".trim()
+
                 val personaToUpdate = Persona(
                     id_Persona = currentUser.id,
-                    nombre = uiState.value.name.takeIf { it.isNotBlank() },
+                    nombre = nombreCompleto,
                     telefono = uiState.value.phone.takeIf { it.isNotBlank() },
                     email = uiState.value.email.takeIf { it.isNotBlank() },
                     vehiculo = "Caravana",
                     direccion = null,
-                    fecha_registro = null
+                    fecha_registro = null,
                 )
 
                 val updatedPersona = personaRepository.updatePersona(personaToUpdate)
 
                 userRepository.saveUser(
                     id = updatedPersona.data.id_Persona,
-                    name = updatedPersona.data.nombre ?: "",
+                    name = nombreCompleto,
                     email = updatedPersona.data.email ?: "",
                     phone = updatedPersona.data.telefono ?: "",
-                    rol = _uiState.value.rol
+                    rol = currentUser.rol,
                 )
 
                 _uiState.value = _uiState.value.copy(
                     loading = false,
                     success = true,
-                    name = updatedPersona.data.nombre ?: _uiState.value.name,
+                    name = uiState.value.name,
                     email = updatedPersona.data.email ?: _uiState.value.email,
                     phone = updatedPersona.data.telefono ?: _uiState.value.phone
                 )
@@ -98,6 +101,4 @@ class ProfileViewModel(
             }
         }
     }
-
-
 }

@@ -277,6 +277,10 @@ fun ParkingScreen(
                     )
 
                 }
+                5 -> {
+                    nav.navigate("home")
+                }
+
             }
         }
     }

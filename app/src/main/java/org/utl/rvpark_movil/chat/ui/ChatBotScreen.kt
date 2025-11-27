@@ -1,5 +1,6 @@
 package org.utl.rvpark_movil.chat.ui
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +30,7 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
     val listState = rememberLazyListState()
     val messages = viewModel.messages
 
+    // Auto-scroll cuando hay un nuevo mensaje
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty())
             listState.animateScrollToItem(messages.size - 1)
@@ -34,17 +38,12 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .navigationBarsPadding()
-                .imePadding()
                 .padding(16.dp)
         ) {
             Text(
@@ -56,21 +55,19 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
             Spacer(Modifier.height(8.dp))
 
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                state = listState
+                state = listState,
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(viewModel.messages) { msg ->
+                items(messages, key = { it.id }) { msg ->
                     ChatBubble(msg)
                 }
             }
 
+            Spacer(Modifier.height(8.dp))
+
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextField(
@@ -78,8 +75,20 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
                     onValueChange = { input = it },
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Escribe algo...") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default,
+                    keyboardActions = KeyboardActions(
+                        onSend = {
+                            if (input.isNotBlank()) {
+                                viewModel.sendMessage(input)
+                                input = ""
+                            }
+                        }
+                    )
                 )
+
                 Spacer(Modifier.width(8.dp))
+
                 Button(
                     onClick = {
                         if (input.isNotBlank()) {
@@ -90,16 +99,12 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
                     shape = CircleShape,
                     contentPadding = PaddingValues(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Send,
-                        contentDescription = "Enviar mensaje"
-                    )
+                    Icon(Icons.Default.Send, contentDescription = "Enviar mensaje")
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun ChatBubble(message: ChatMessage) {
@@ -128,4 +133,3 @@ fun ChatBubble(message: ChatMessage) {
         }
     }
 }
-

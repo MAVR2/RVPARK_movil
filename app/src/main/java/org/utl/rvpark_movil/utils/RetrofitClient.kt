@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:3000/"
+    private const val BASE_URL = "https://rv-park-backend.onrender.com/"
 
     fun <T> createService(serviceClass: Class<T>, tokenProvider: () -> String? = { null }): T {
 

@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import org.utl.rvpark_movil.utils.components.TextField
 import org.utl.rvpark_movil.utils.preferences.UserRepository
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditarUserScreen(
     navController: NavHostController,
@@ -21,66 +22,74 @@ fun EditarUserScreen(
     val uiState by viewModel.uiState.collectAsState()
     val userRepository = UserRepository(context)
 
+    var lastName by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .padding(20.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Top
-    ) {
-
-        Text(
-            text = "Editar usuario",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        TextField(
-            value = uiState.name,
-            label = "Nombre",
-            onValueChange = { viewModel.updateName(it) },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-
-
-        TextField(
-            value = uiState.email,
-            label = "Correo",
-            onValueChange = { viewModel.updateEmail(it) },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = uiState.phone,
-            label = "Teléfono",
-            onValueChange = { viewModel.updatePhone(it) },
-            keyboardType = KeyboardType.Phone,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        Button(
-            onClick = {
-                viewModel.savePersona(
-                    userRepository =userRepository,
-                    onDone = {"Actualizado"}
-                )
-
-                navController.popBackStack()
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Editar usuario") }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(20.dp)
+                .fillMaxSize()
         ) {
-            Text("Guardar cambios")
+
+            TextField(
+                value = uiState.name,
+                label = "Nombre",
+                onValueChange = { viewModel.updateName(it) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            TextField(
+                value = lastName,
+                label = "Apellido",
+                onValueChange = { lastName = it },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            TextField(
+                value = uiState.email,
+                label = "Correo",
+                onValueChange = { viewModel.updateEmail(it) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            TextField(
+                value = uiState.phone,
+                label = "Teléfono",
+                onValueChange = { viewModel.updatePhone(it) },
+                keyboardType = KeyboardType.Phone,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(28.dp))
+
+            Button(
+                onClick = {
+                    viewModel.savePersona(
+                        userRepository = userRepository,
+                        lastName = lastName,
+                        onDone = { "Actualizado" }
+                    )
+                    navController.popBackStack()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Guardar cambios")
+            }
         }
     }
 }
+
+

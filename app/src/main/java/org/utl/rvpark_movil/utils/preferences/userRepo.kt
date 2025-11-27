@@ -26,7 +26,7 @@ class UserRepository(private val context: Context) {
         email: String,
         name: String,
         phone: String,
-        rol: String,
+        rol: String ,
         id_rv_park: String = "",
         token: String = ""
     ) {
