@@ -5,16 +5,26 @@ data class CrearRentaRequest(
     val id_usuario: String?,
     val id_spot: String,
     val fecha_inicio: String,
-    val fecha_fin: String?,
-    val metodo_pago: String = "Tarjeta",
-    val observaciones: String = "Esta renta es una simulacion de compra"
+    val fecha_fin: String? = null,
+    val tipo_renta: String = "mes",
+    val tarifa_unitaria: Double,
+    val duracion: Int,
+    val observaciones: String? = null
 )
 
 
 data class CrearRentaResponse(
     val success: Boolean,
+    val message: String,
     val data: RentaCompleta,
-    val calculoPago: CalculoPago
+    val info: InfoRenta
+)
+
+data class InfoRenta(
+    val monto_total: Double,
+    val total_dias: Int,
+    val estatus_pago: String,
+    val tipo_renta: String
 )
 
 data class RentaCompleta(

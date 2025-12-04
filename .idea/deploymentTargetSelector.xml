@@ -8,9 +8,6 @@
       <SelectionState runConfigName="RegisterScreen">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="DialogError">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="LoadingDialogPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
